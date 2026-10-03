@@ -94,21 +94,6 @@ dotnet new install Barisozy.Clean.Architecture.Template
 dotnet new cleanarch --name MyCleanArchitecture
 ```
 
-## Publish the template package to NuGet
-
-The complete solution is published as the `Barisozy.Clean.Architecture.Template` project template. Its version is maintained in the repository-root `Directory.Build.props`. NuGet currently has no package listed with this ID; package IDs are claimed by the first successful publish.
-
-1. Create a NuGet.org API key with package push permissions.
-2. In GitHub, add it under **Settings → Secrets and variables → Actions** as `NUGET_API_KEY`.
-3. Set or increment `<Version>` in `Directory.Build.props`, commit and push the change, then push a matching `v`-prefixed tag. For version `1.0.0`, run:
-
-   ```powershell
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-The publish workflow verifies that the tag matches the root version, packs the complete solution as a `dotnet new` template package and publishes it to NuGet.org. The NuGet badges update after the package is indexed.
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and pull request guidance.
