@@ -1,10 +1,8 @@
 # Clean Architecture Template
 
 [![Build](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml)
-[![NuGet version](https://img.shields.io/nuget/v/Clean.Architecture.Template)](https://www.nuget.org/packages/Clean.Architecture.Template)
-[![NuGet downloads](https://img.shields.io/nuget/dt/Clean.Architecture.Template)](https://www.nuget.org/packages/Clean.Architecture.Template)
-
-Maintainer: **barisozy**
+[![NuGet version](https://img.shields.io/nuget/v/Barisozy.Clean.Architecture.Template)](https://www.nuget.org/packages/Barisozy.Clean.Architecture.Template)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Barisozy.Clean.Architecture.Template)](https://www.nuget.org/packages/Barisozy.Clean.Architecture.Template)
 
 A **.NET 10** starter for building APIs with clear boundaries between the Domain, Application, Infrastructure, and Web API layers. The template includes working Todo and User use cases, PostgreSQL persistence, authentication, observability, and automated tests.
 
