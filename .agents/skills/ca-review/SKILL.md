@@ -1,6 +1,6 @@
 ---
 name: ca-review
-description: Review pending changes against the Clean Architecture template's conventions — layer boundaries, Result-based error handling, slice structure, validation, endpoints, and test coverage. Use when the user asks to review changes, check conventions, or audit a feature before committing.
+description: Review pending changes against the Clean Architecture template's conventions — layer boundaries, Result-based error handling, slice structure, validation, endpoints and test coverage. Use when the user asks to review changes, check conventions or audit a feature before committing.
 argument-hint: [optional: specific files or feature to review; defaults to the working-tree diff]
 ---
 
@@ -45,4 +45,4 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 
 ## Output format
 
-Group findings as **Blockers** (layer violations, missing auth, thrown exceptions for expected failures), **Convention violations** (naming, structure, error codes, missing events/invalidation), and **Test gaps**. For each: `file:line`, what's wrong, and the one-line fix. Close with a verdict: ready to commit, or what must change first. If everything passes, say so and run `dotnet build` + `dotnet test` to confirm.
+Group findings as **Blockers** (layer violations, missing auth, thrown exceptions for expected failures), **Convention violations** (naming, structure, error codes, missing events/invalidation) and **Test gaps**. For each: `file:line`, what's wrong and the one-line fix. Close with a verdict: ready to commit or what must change first. If everything passes, say so and run `dotnet build` + `dotnet test` to confirm.

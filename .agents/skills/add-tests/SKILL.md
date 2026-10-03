@@ -1,6 +1,6 @@
 ---
 name: add-tests
-description: Backfill missing tests for existing use cases in the Clean Architecture template — handler unit tests, FluentValidation validator tests, and HTTP integration tests. Use when the user asks to add, improve, or backfill test coverage.
+description: Backfill missing tests for existing use cases in the Clean Architecture template — handler unit tests, FluentValidation validator tests and HTTP integration tests. Use when the user asks to add, improve or backfill test coverage.
 argument-hint: <use case or feature to cover, e.g. "CopyTodoCommand" or "the Users feature">
 ---
 
@@ -10,7 +10,7 @@ Backfill the three test types this template expects for every slice. Read the ta
 
 ## Workflow
 
-1. **Locate the slice.** Find the command/query, handler, validator, and endpoint for the target use case. List every distinct outcome: each guard clause (`return Result.Failure(...)`) and the happy path.
+1. **Locate the slice.** Find the command/query, handler, validator and endpoint for the target use case. List every distinct outcome: each guard clause (`return Result.Failure(...)`) and the happy path.
 2. **Check what already exists** in `tests/Application.UnitTests/{Feature}/` and `tests/IntegrationTests/{Feature}/` — extend existing classes, don't duplicate.
 3. **Write handler unit tests** — one test per failure path plus one happy path asserting persisted state and raised domain events.
 4. **Write validator tests** (commands only) — one failing test per rule plus one fully-valid command.
@@ -26,4 +26,4 @@ Backfill the three test types this template expects for every slice. Read the ta
 - **Structure:** `// Arrange` / `// Act` / `// Assert` comments in every test.
 - **Assertions:** compare exact domain errors (`result.Error.ShouldBe(TodoItemErrors.NotFound(id))`); assert persisted state by re-reading from the context (unit) or via a GET request (integration); assert domain events with `entity.DomainEvents.ShouldContain(e => e is XDomainEvent)`.
 
-Full annotated templates: [../add-feature/references/tests.md](../add-feature/references/tests.md) (if the `add-feature` skill is installed) or mirror `CreateTodoCommandHandlerTests`, `TodoValidatorsTests`, and `TodosTests` in this repo.
+Full annotated templates: [../add-feature/references/tests.md](../add-feature/references/tests.md) (if the `add-feature` skill is installed) or mirror `CreateTodoCommandHandlerTests`, `TodoValidatorsTests` and `TodosTests` in this repo.

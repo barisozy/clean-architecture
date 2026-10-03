@@ -1,6 +1,6 @@
 # Command Slice Templates
 
-Files go in `src/Application/{Feature}/{UseCase}/`. Replace `{Feature}` (plural, e.g. `Todos`), `{Entity}` (e.g. `TodoItem`), and use-case names throughout.
+Files go in `src/Application/{Feature}/{UseCase}/`. Replace `{Feature}` (plural, e.g. `Todos`), `{Entity}` (e.g. `TodoItem`) and use-case names throughout.
 
 ## Command
 
@@ -58,7 +58,7 @@ public class CreateTodoCommandValidator : AbstractValidator<CreateTodoCommand>
 
 ## Handler
 
-`internal sealed`, primary constructor, `IApplicationDbContext` for data access. Guard clauses return `Result.Failure` with Domain errors; the happy path mutates, raises a domain event, saves, and returns.
+`internal sealed`, primary constructor, `IApplicationDbContext` for data access. Guard clauses return `Result.Failure` with Domain errors; the happy path mutates, raises a domain event, saves and returns.
 
 ```csharp
 using Application.Abstractions.Authentication;

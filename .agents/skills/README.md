@@ -1,15 +1,15 @@
 # Clean Architecture Agent Skills for Claude Code
 
-A skill pack that teaches Claude Code the conventions of the Clean Architecture template — so every feature it builds looks like you wrote it: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints, and full test coverage.
+A skill pack that teaches Claude Code the conventions of the Clean Architecture template — so every feature it builds looks like you wrote it: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints and full test coverage.
 
 ## What's inside
 
 | Skill | Invoke with | What it does |
 |---|---|---|
-| **add-feature** | `/add-feature archive a todo item` | Scaffolds a complete vertical slice: command/query, handler, validator, endpoint, and unit + validator + integration tests. |
+| **add-feature** | `/add-feature archive a todo item` | Scaffolds a complete vertical slice: command/query, handler, validator, endpoint and unit + validator + integration tests. |
 | **add-entity** | `/add-entity Project with a name and owner` | Adds a domain entity end to end: entity, error catalog, domain events, EF configuration, DbContext wiring, migration. |
-| **add-tests** | `/add-tests CopyTodoCommand` | Backfills handler, validator, and integration tests for existing use cases. |
-| **ca-review** | `/ca-review` | Reviews pending changes against the template's conventions: layer boundaries, error handling, security, caching, and test coverage. |
+| **add-tests** | `/add-tests CopyTodoCommand` | Backfills handler, validator and integration tests for existing use cases. |
+| **ca-review** | `/ca-review` | Reviews pending changes against the template's conventions: layer boundaries, error handling, security, caching and test coverage. |
 
 You don't have to invoke them explicitly — once installed, Claude Code picks the right skill automatically when you say things like "add an endpoint to snooze a todo."
 
@@ -37,7 +37,7 @@ Works with both the standard and the Aspire variants of the template.
 /add-feature snooze a todo until a given date
 ```
 
-Claude will create the command, validator, handler (with ownership check, domain event, and cache invalidation), the endpoint, and the three test types — then build and run the tests.
+Claude will create the command, validator, handler (with ownership check, domain event and cache invalidation), the endpoint and the three test types — then build and run the tests.
 
 ## Customizing
 

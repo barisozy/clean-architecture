@@ -82,7 +82,7 @@ Conventions:
 - Test names: `Handle_Should_{Outcome}_When{Condition}`.
 - `// Arrange` / `// Act` / `// Assert` comments in every test.
 - Assert failures by comparing the exact error: `result.Error.ShouldBe(TodoItemErrors.NotFound(id))`.
-- `GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, `Shouldly`, and `SharedKernel` — don't re-add those usings.
+- `GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, `Shouldly` and `SharedKernel` — don't re-add those usings.
 - If the entity gains new properties, `TestDbContext` picks them up automatically; only touch it when adding a whole new `DbSet`.
 
 ## Validator tests
@@ -110,7 +110,7 @@ Cover each rule's failure plus one fully-valid command (`ShouldNotHaveAnyValidat
 
 ## Integration tests
 
-`tests/IntegrationTests/{Feature}/{Feature}Tests.cs` (extend the existing file if present). Inherit `BaseIntegrationTest(factory)` — it runs the real API against a Testcontainers Postgres and provides `HttpClient`, `RegisterAndLoginAsync()`, and `Authenticate(token)`. Tests go through real HTTP, never call handlers directly.
+`tests/IntegrationTests/{Feature}/{Feature}Tests.cs` (extend the existing file if present). Inherit `BaseIntegrationTest(factory)` — it runs the real API against a Testcontainers Postgres and provides `HttpClient`, `RegisterAndLoginAsync()` and `Authenticate(token)`. Tests go through real HTTP, never call handlers directly.
 
 ```csharp
 [Fact]
@@ -139,7 +139,7 @@ public async Task ArchiveTodo_Should_MarkTodoAsArchived()
 }
 ```
 
-Minimum coverage per endpoint: one unauthorized test (no token → 401) if it's a new route family, one happy-path test asserting observable state via a follow-up GET, and one failure translation test (e.g. unknown id → 404) when the handler has failure paths.
+Minimum coverage per endpoint: one unauthorized test (no token → 401) if it's a new route family, one happy-path test asserting observable state via a follow-up GET and one failure translation test (e.g. unknown id → 404) when the handler has failure paths.
 
 ## Run
 
