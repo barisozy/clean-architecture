@@ -13,11 +13,13 @@
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageTags>dotnet-new;template;clean-architecture;web-api</PackageTags>
 	<PackageType>Template</PackageType>
+	<PackageIcon>.template.config/icon.png</PackageIcon>
 	<RepositoryType>git</RepositoryType>
 	<RepositoryUrl>https://github.com/barisozy/clean-architecture</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
+	<None Include=".template.config/icon.png" Pack="true" PackagePath="" />
 	<None Include="README.md" Pack="true" PackagePath="\" />
 	<Content Include="**/*"
 			  Exclude=".containers/**;.git/**;.vs/**;README.md;CleanArchitecture.Template.csproj;artifacts/**;packaging/**;**/bin/**;**/obj/**;**/TestResults/**;.github/workflows/publish-nuget.yml;**/*.user;**/*.suo;**/*.userosscache">
