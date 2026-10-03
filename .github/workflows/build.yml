@@ -1,0 +1,42 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: "10.x"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: |
+          SOLUTION="$(find . -maxdepth 1 -name '*.slnx' -print -quit)"
+          if [[ -z "$SOLUTION" ]]; then
+            echo "::error::No solution file was found at the repository root."
+            exit 1
+          fi
+          echo "SOLUTION=$SOLUTION" >> "$GITHUB_ENV"
+          dotnet restore "$SOLUTION"
+
+      - name: Build
+        run: dotnet build "$SOLUTION" --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test "$SOLUTION" --configuration Release --no-restore --no-build
+
+      - name: Publish
+        run: dotnet publish "$SOLUTION" --configuration Release --no-restore --no-build

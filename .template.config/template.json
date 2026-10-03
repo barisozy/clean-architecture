@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/template",
+  "author": "barisozy",
+  "classifications": [
+    "Clean Architecture",
+    "Web API",
+    ".NET 10"
+  ],
+  "identity": "Barisozy.Clean.Architecture.Template",
+  "name": "Clean Architecture API",
+  "shortName": "cleanarch",
+  "sourceName": "CleanArchitecture",
+  "preferNameDirectory": true,
+  "primaryOutputs": [
+    {
+      "path": "CleanArchitecture.slnx"
+    }
+  ],
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  }
+}
