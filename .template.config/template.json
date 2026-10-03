@@ -4,7 +4,8 @@
   "classifications": [
     "Clean Architecture",
     "Web API",
-    ".NET 10"
+    ".NET 10",
+    "Aspire"
   ],
   "identity": "Barisozy.Clean.Architecture.Template",
   "name": "Clean Architecture API",
