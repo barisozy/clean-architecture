@@ -90,13 +90,13 @@ Integration tests start a disposable PostgreSQL 18.6 container, so Docker must b
 Install the template package and generate a new solution:
 
 ```powershell
-dotnet new install CleanArchitecture.Api.Template
+dotnet new install Barisozy.Clean.Architecture.Template
 dotnet new cleanarch --name MyCleanArchitecture
 ```
 
 ## Publish the template package to NuGet
 
-The complete solution is published as the `CleanArchitecture.Api.Template` project template. Its version is maintained in the repository-root `Directory.Build.props`. NuGet currently has no package listed with this ID; package IDs are claimed by the first successful publish.
+The complete solution is published as the `Barisozy.Clean.Architecture.Template` project template. Its version is maintained in the repository-root `Directory.Build.props`. NuGet currently has no package listed with this ID; package IDs are claimed by the first successful publish.
 
 1. Create a NuGet.org API key with package push permissions.
 2. In GitHub, add it under **Settings → Secrets and variables → Actions** as `NUGET_API_KEY`.
