@@ -8,7 +8,7 @@
     "Aspire"
   ],
   "identity": "Barisozy.Clean.Architecture.Template",
-  "name": "A modern Clean Architecture API solution template.",
+  "name": "Clean Architecture API Solution",
   "shortName": "cleanarch",
   "sourceName": "CleanArchitecture",
   "preferNameDirectory": true,
