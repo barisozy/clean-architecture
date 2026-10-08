@@ -6,7 +6,7 @@
 	<IncludeBuildOutput>false</IncludeBuildOutput>
 	<NoDefaultExcludes>true</NoDefaultExcludes>
 	<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-	<PackageId>Barisozy.Clean.Architecture.Template</PackageId>
+	<PackageId>Barisozy.CleanArchitecture.Template</PackageId>
 	<Authors>barisozy</Authors>
 	<Description>A .NET 10 Clean Architecture API solution template.</Description>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
