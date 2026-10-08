@@ -9,6 +9,7 @@
   ],
   "identity": "Barisozy.Clean.Architecture.Template",
   "name": "Clean Architecture API Solution",
+  "description": "A modern Clean Architecture API solution template.",
   "shortName": "cleanarch",
   "sourceName": "CleanArchitecture",
   "preferNameDirectory": true,
