@@ -1,8 +1,8 @@
 # Clean Architecture Template
 
 [![Build](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml)
-[![NuGet version](https://img.shields.io/nuget/v/Barisozy.Clean.Architecture.Template)](https://www.nuget.org/packages/Barisozy.Clean.Architecture.Template)
-[![NuGet downloads](https://img.shields.io/nuget/dt/Barisozy.Clean.Architecture.Template)](https://www.nuget.org/packages/Barisozy.Clean.Architecture.Template)
+[![NuGet version](https://img.shields.io/nuget/v/Barisozy.CleanArchitecture.Template)](https://www.nuget.org/packages/Barisozy.CleanArchitecture.Template)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Barisozy.CleanArchitecture.Template)](https://www.nuget.org/packages/Barisozy.CleanArchitecture.Template)
 
 A **.NET 10** starter for building APIs with clear boundaries between the Domain, Application, Infrastructure and Web API layers. The template includes working Todo and User use cases, PostgreSQL persistence, authentication, observability and automated tests.
 
@@ -90,7 +90,7 @@ Integration tests start a disposable PostgreSQL 18.6 container, so Docker must b
 Install the template package and generate a new solution:
 
 ```powershell
-dotnet new install Barisozy.Clean.Architecture.Template
+dotnet new install Barisozy.CleanArchitecture.Template
 dotnet new cleanarch --name MyCleanArchitecture
 ```
 
