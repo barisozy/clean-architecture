@@ -8,7 +8,7 @@
 	<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 	<PackageId>Barisozy.CleanArchitecture.Template</PackageId>
 	<Authors>barisozy</Authors>
-	<Description>A .NET 10 Clean Architecture API solution template.</Description>
+	<Description>A modern Clean Architecture API solution template.</Description>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageTags>dotnet-new;template;clean-architecture;web-api</PackageTags>
