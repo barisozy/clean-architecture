@@ -40,3 +40,33 @@ jobs:
 
       - name: Publish
         run: dotnet publish "$SOLUTION" --configuration Release --no-restore --no-build
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build image
+        run: docker build -f src/Web.Api/Dockerfile -t web-api:ci .
+
+      - name: Compose smoke test
+        run: |
+          docker compose -f docker-compose.yml up -d --build web-api
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:5000/health > /dev/null; then
+              echo "web-api is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::web-api did not become healthy within 60s"
+          docker compose -f docker-compose.yml logs web-api
+          exit 1
+
+      - name: Teardown
+        if: always()
+        run: docker compose -f docker-compose.yml down -v
