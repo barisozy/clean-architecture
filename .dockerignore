@@ -23,3 +23,7 @@
 **/values.dev.yaml
 LICENSE
 README.md
+.containers
+.github
+.agents
+tests
