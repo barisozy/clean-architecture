@@ -1,33 +1,25 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Authorization;
 
-internal sealed class PermissionAuthorizationPolicyProvider : DefaultAuthorizationPolicyProvider
+internal sealed class PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options)
+    : DefaultAuthorizationPolicyProvider(options)
 {
-    private readonly AuthorizationOptions _authorizationOptions;
-
-    public PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options)
-        : base(options)
-    {
-        _authorizationOptions = options.Value;
-    }
+    //Policy caching is not strictly necessary, but it can improve performance by avoiding the need to create a new policy for every request.
+    private readonly ConcurrentDictionary<string, AuthorizationPolicy> _permissionPolicies =
+        new(StringComparer.Ordinal);
 
     public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
         AuthorizationPolicy? policy = await base.GetPolicyAsync(policyName);
 
-        if (policy is not null)
-        {
-            return policy;
-        }
-
-        AuthorizationPolicy permissionPolicy = new AuthorizationPolicyBuilder()
-            .AddRequirements(new PermissionRequirement(policyName))
-            .Build();
-
-        _authorizationOptions.AddPolicy(policyName, permissionPolicy);
-
-        return permissionPolicy;
+        return policy ?? _permissionPolicies.GetOrAdd(
+            policyName,
+            static name => new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .AddRequirements(new PermissionRequirement(name))
+                .Build());
     }
 }

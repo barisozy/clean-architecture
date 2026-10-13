@@ -36,7 +36,7 @@ public sealed class CreateTodoCommandHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.Unauthorized());
+        result.Error.ShouldBe(UserErrors.Forbidden());
     }
 
     [Fact]
