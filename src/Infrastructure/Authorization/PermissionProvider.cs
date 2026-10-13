@@ -2,11 +2,9 @@
 
 internal sealed class PermissionProvider
 {
-    public Task<HashSet<string>> GetForUserIdAsync(Guid userId)
-    {
-        // TODO: Here you'll implement your logic to fetch permissions.
-        HashSet<string> permissionsSet = [];
+    // Stub: In a real application, this would query a database or an external service to get the permissions for the user.
+    private static readonly string[] DefaultPermissions = ["users:access"];
 
-        return Task.FromResult(permissionsSet);
-    }
+    public Task<HashSet<string>> GetForUserIdAsync(Guid userId) =>
+        Task.FromResult(new HashSet<string>(DefaultPermissions, StringComparer.Ordinal));
 }

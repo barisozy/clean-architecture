@@ -14,7 +14,7 @@ internal sealed class GetTodosQueryHandler(IApplicationDbContext context, IUserC
     {
         if (query.UserId != userContext.UserId)
         {
-            return Result.Failure<List<TodoResponse>>(UserErrors.Unauthorized());
+            return Result.Failure<List<TodoResponse>>(UserErrors.Forbidden());
         }
 
         List<TodoResponse> todos = await context.TodoItems

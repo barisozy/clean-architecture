@@ -18,7 +18,7 @@ internal sealed class CopyTodoCommandHandler(
     {
         if (userContext.UserId != command.UserId)
         {
-            return Result.Failure<Guid>(UserErrors.Unauthorized());
+            return Result.Failure<Guid>(UserErrors.Forbidden());
         }
 
         User? user = await context.Users.AsNoTracking()
