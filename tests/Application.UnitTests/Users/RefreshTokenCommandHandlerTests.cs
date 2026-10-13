@@ -83,9 +83,14 @@ public sealed class RefreshTokenCommandHandlerTests : BaseHandlerTest
         result.Value.AccessToken.ShouldBe("new-access-token");
         result.Value.RefreshToken.ShouldBe("new-refresh-token");
 
-        RefreshToken stored = await context.RefreshTokens.SingleAsync();
-        stored.Token.ShouldBe("new-refresh-token");
-        stored.ExpiresOnUtc.ShouldBeGreaterThan(now);
+        List<RefreshToken> stored = await context.RefreshTokens.OrderBy(token => token.CreatedOnUtc).ToListAsync();
+        stored.Count.ShouldBe(2);
+        stored[0].TokenHash.ShouldBe(RefreshTokenHasher.Hash("old-token"));
+        stored[0].UsedOnUtc.ShouldBe(now);
+        stored[1].TokenHash.ShouldBe(RefreshTokenHasher.Hash("new-refresh-token"));
+        stored[1].FamilyId.ShouldBe(stored[0].FamilyId);
+        stored[1].UsedOnUtc.ShouldBeNull();
+        stored[1].ExpiresOnUtc.ShouldBeGreaterThan(now);
     }
 
     private static async Task SeedRefreshTokenAsync(TestDbContext context, string token, DateTime expiresOnUtc)
@@ -100,14 +105,14 @@ public sealed class RefreshTokenCommandHandlerTests : BaseHandlerTest
         };
 
         context.Users.Add(user);
-        context.RefreshTokens.Add(new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            Token = token,
-            UserId = user.Id,
-            ExpiresOnUtc = expiresOnUtc,
-            User = user
-        });
+        var refreshToken = RefreshToken.Create(
+            user.Id,
+            Guid.NewGuid(),
+            RefreshTokenHasher.Hash(token),
+            expiresOnUtc.AddDays(-RefreshToken.LifetimeInDays));
+        refreshToken.ExpiresOnUtc = expiresOnUtc;
+        refreshToken.User = user;
+        context.RefreshTokens.Add(refreshToken);
 
         await context.SaveChangesAsync();
     }
