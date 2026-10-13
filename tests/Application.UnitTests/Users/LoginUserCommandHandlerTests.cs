@@ -90,7 +90,9 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
         result.Value.RefreshToken.ShouldBe("refresh-token");
 
         RefreshToken refreshToken = await context.RefreshTokens.SingleAsync();
-        refreshToken.Token.ShouldBe("refresh-token");
+        refreshToken.TokenHash.ShouldBe(RefreshTokenHasher.Hash("refresh-token"));
+        refreshToken.FamilyId.ShouldNotBe(Guid.Empty);
+        refreshToken.CreatedOnUtc.ShouldBe(dateTimeProvider.UtcNow);
         refreshToken.ExpiresOnUtc.ShouldBeGreaterThan(dateTimeProvider.UtcNow);
     }
 

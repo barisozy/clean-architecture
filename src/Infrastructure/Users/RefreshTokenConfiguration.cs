@@ -10,9 +10,12 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
     {
         builder.HasKey(refreshToken => refreshToken.Id);
 
-        builder.Property(refreshToken => refreshToken.Token).HasMaxLength(200);
+        // SHA-256 as upper-case hex = 64 characters.
+        builder.Property(refreshToken => refreshToken.TokenHash).HasMaxLength(64).IsRequired();
 
-        builder.HasIndex(refreshToken => refreshToken.Token).IsUnique();
+        builder.HasIndex(refreshToken => refreshToken.TokenHash).IsUnique();
+
+        builder.HasIndex(refreshToken => refreshToken.FamilyId);
 
         builder.HasOne(refreshToken => refreshToken.User)
             .WithMany()

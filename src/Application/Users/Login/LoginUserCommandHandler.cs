@@ -34,20 +34,14 @@ internal sealed class LoginUserCommandHandler(
         string accessToken = tokenProvider.Create(user);
         string refreshToken = tokenProvider.GenerateRefreshToken();
 
-        var refreshTokenEntity = new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            Token = refreshToken,
-            UserId = user.Id,
-            ExpiresOnUtc = dateTimeProvider.UtcNow.AddDays(RefreshTokenExpirationInDays)
-        };
-
-        context.RefreshTokens.Add(refreshTokenEntity);
+        context.RefreshTokens.Add(RefreshToken.Create(
+            user.Id,
+            Guid.NewGuid(),
+            RefreshTokenHasher.Hash(refreshToken),
+            dateTimeProvider.UtcNow));
 
         await context.SaveChangesAsync(cancellationToken);
 
         return new AccessTokensResponse(accessToken, refreshToken);
     }
-
-    private const int RefreshTokenExpirationInDays = 7;
 }

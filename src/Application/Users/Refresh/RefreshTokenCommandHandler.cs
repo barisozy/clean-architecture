@@ -14,26 +14,35 @@ internal sealed class RefreshTokenCommandHandler(
 {
     public async Task<Result<AccessTokensResponse>> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
     {
-        RefreshToken? refreshToken = await context.RefreshTokens
-            .Include(rt => rt.User)
-            .SingleOrDefaultAsync(rt => rt.Token == command.RefreshToken, cancellationToken);
+        string tokenHash = RefreshTokenHasher.Hash(command.RefreshToken);
+        DateTime now = dateTimeProvider.UtcNow;
 
-        if (refreshToken is null || refreshToken.ExpiresOnUtc < dateTimeProvider.UtcNow)
+        RefreshToken? current = await context.RefreshTokens
+            .Include(rt => rt.User)
+            .SingleOrDefaultAsync(rt => rt.TokenHash == tokenHash, cancellationToken);
+
+        if (current is null ||
+            current.UsedOnUtc is not null ||
+            current.RevokedOnUtc is not null ||
+            current.ExpiresOnUtc <= now)
         {
             return Result.Failure<AccessTokensResponse>(UserErrors.InvalidRefreshToken);
         }
 
-        string accessToken = tokenProvider.Create(refreshToken.User);
+        string accessToken = tokenProvider.Create(current.User);
         string newRefreshToken = tokenProvider.GenerateRefreshToken();
 
-        // Rotate the refresh token so a stolen token can only be used once.
-        refreshToken.Token = newRefreshToken;
-        refreshToken.ExpiresOnUtc = dateTimeProvider.UtcNow.AddDays(RefreshTokenExpirationInDays);
+        // Rotation: retain the used token as an audit record and continue its family in a new row.
+        current.UsedOnUtc = now;
+
+        context.RefreshTokens.Add(RefreshToken.Create(
+            current.UserId,
+            current.FamilyId,
+            RefreshTokenHasher.Hash(newRefreshToken),
+            now));
 
         await context.SaveChangesAsync(cancellationToken);
 
         return new AccessTokensResponse(accessToken, newRefreshToken);
     }
-
-    private const int RefreshTokenExpirationInDays = 7;
 }
