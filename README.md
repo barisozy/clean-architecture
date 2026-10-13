@@ -85,6 +85,10 @@ Jwt__Audience=<audience>
 Jwt__ExpirationInMinutes=60
 ```
 
+### Logging
+
+Logs are written to stdout as compact JSON (one event per line) in every environment. Override levels or add sinks through configuration or environment variables, for example `Serilog__MinimumLevel__Default=Warning`. Development additionally writes to Seq.
+
 Secrets starting with `dev-only-` are rejected outside the Development environment. Tokens are signed and validated with HS256 only.
 
 ## Build and test
