@@ -74,6 +74,19 @@ PostgreSQL data is stored under `.containers/db` and survives container recreati
 
 Compose and Aspire enable EF Core migrations at startup for local development. For production, use a managed or separately operated PostgreSQL service, provide credentials through a secret store or environment variables and apply migrations as a controlled deployment step before API instances start. Configure production JWT secrets, HTTPS, database TLS, backups and monitoring.
 
+### JWT configuration
+
+The application fails at startup if the JWT settings are invalid. Provide them through a secret store or environment variables:
+
+```text
+Jwt__Secret=<random, at least 32 bytes>
+Jwt__Issuer=<issuer>
+Jwt__Audience=<audience>
+Jwt__ExpirationInMinutes=60
+```
+
+Secrets starting with `dev-only-` are rejected outside the Development environment. Tokens are signed and validated with HS256 only.
+
 ## Build and test
 
 Run from the repository root:
