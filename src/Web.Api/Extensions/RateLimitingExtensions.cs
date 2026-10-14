@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Web.Api.Infrastructure;
 
@@ -44,8 +45,16 @@ internal static class RateLimitingExtensions
 
     private static string GetPartitionKey(HttpContext httpContext)
     {
-        return httpContext.User.Identity?.Name
-            ?? httpContext.Connection.RemoteIpAddress?.ToString()
-            ?? "anonymous";
+        string? userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            return $"user:{userId}";
+        }
+
+        string? remoteIp = httpContext.Connection.RemoteIpAddress?.ToString();
+
+        return remoteIp is null ? "anonymous" : $"ip:{remoteIp}";
     }
 }
+

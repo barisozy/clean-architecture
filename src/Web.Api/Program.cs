@@ -21,11 +21,17 @@ builder.Services
     .AddPresentation()
     .AddInfrastructure(builder.Configuration);
 
+builder.Services.AddForwardedHeadersInternal(builder.Configuration);
+
 builder.Services.AddRateLimitingInternal(builder.Configuration);
 
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
 WebApplication app = builder.Build();
+
+// Must run first: client address and scheme are resolved before logging, rate limiting and auth.
+// It is a no-op unless ForwardedHeaders:Enabled is configured.
+app.UseForwardedHeaders();
 
 app.MapDefaultEndpoints();
 
@@ -55,9 +61,9 @@ app.UseExceptionHandler();
 
 app.UseAuthentication();
 
-app.UseAuthorization();
-
 app.UseRateLimiter();
+
+app.UseAuthorization();
 
 // REMARK: If you want to use Controllers, you'll need this.
 app.MapControllers();
