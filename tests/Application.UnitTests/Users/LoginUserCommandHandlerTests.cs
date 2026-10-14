@@ -14,28 +14,32 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
     private const string Password = "Password123";
 
     [Fact]
-    public async Task Handle_Should_ReturnFailure_WhenUserDoesNotExist()
+    public async Task Handle_Should_StillVerifyAPassword_WhenEmailIsUnknown()
     {
         // Arrange
         await using TestDbContext context = CreateDbContext();
+        IPasswordHasher passwordHasher = Substitute.For<IPasswordHasher>();
         var handler = new LoginUserCommandHandler(
             context,
-            Substitute.For<IPasswordHasher>(),
+            passwordHasher,
             Substitute.For<ITokenProvider>(),
             Substitute.For<IDateTimeProvider>());
 
         // Act
         Result<AccessTokensResponse> result = await handler.Handle(
-            new LoginUserCommand(Email, Password),
+            new LoginUserCommand("unknown@example.com", "Whatever1!"),
             CancellationToken.None);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(UserErrors.NotFoundByEmail);
+
+        // Same work as the wrong-password path: response time must not reveal whether the user exists.
+        passwordHasher.Received(1).Verify(Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
-    public async Task Handle_Should_ReturnFailure_WhenPasswordIsInvalid()
+    public async Task Handle_Should_VerifyOnce_WhenPasswordIsWrong()
     {
         // Arrange
         await using TestDbContext context = CreateDbContext();
@@ -58,6 +62,7 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
         // Assert
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(UserErrors.NotFoundByEmail);
+        passwordHasher.Received(1).Verify(Password, "hash");
     }
 
     [Fact]
