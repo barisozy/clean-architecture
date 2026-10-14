@@ -1,8 +1,6 @@
 using System.Reflection;
 using Application;
-using HealthChecks.UI.Client;
 using Infrastructure;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 using Serilog;
 using Web.Api;
@@ -33,8 +31,6 @@ WebApplication app = builder.Build();
 // It is a no-op unless ForwardedHeaders:Enabled is configured.
 app.UseForwardedHeaders();
 
-app.MapDefaultEndpoints();
-
 app.MapEndpoints();
 
 if (app.Environment.IsDevelopment())
@@ -48,10 +44,7 @@ if (builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup", fa
     app.ApplyMigrations();
 }
 
-app.MapHealthChecks("health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
+app.MapHealthEndpoints();
 
 app.UseRequestContextLogging();
 

@@ -107,6 +107,16 @@ ForwardedHeaders__KnownNetworks__0=10.0.0.0/8
 
 Forwarded headers are ignored by default. Enabling them without at least one known proxy or network fails at startup, because trusting unknown peers would let clients spoof their address.
 
+### Health checks
+
+| Endpoint | Purpose | Notes |
+| --- | --- | --- |
+| `/health/live` | Liveness probe | Process responsiveness only; never touches the database |
+| `/health/ready` | Readiness probe | Checks the database; the body is the status only |
+| `/health` | Detailed report | Development only |
+
+Probe endpoints are exempt from rate limiting and expose no check names or exception details.
+
 ## Build and test
 
 Run from the repository root:

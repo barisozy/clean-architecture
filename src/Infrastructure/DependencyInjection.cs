@@ -62,7 +62,10 @@ public static class DependencyInjection
     {
         services
             .AddHealthChecks()
-            .AddNpgSql(configuration.GetConnectionString("Database")!);
+            .AddNpgSql(
+                configuration.GetConnectionString("Database")!,
+                tags: ["ready"],
+                timeout: TimeSpan.FromSeconds(5));
 
         return services;
     }

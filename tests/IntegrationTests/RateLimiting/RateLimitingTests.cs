@@ -57,6 +57,18 @@ public sealed class RateLimitingTests(RateLimitingTests.RateLimitedFactory facto
     }
 
     [Fact]
+    public async Task HealthProbes_Should_NeverBeRateLimited()
+    {
+        HttpClient client = factory.CreateClient();
+
+        for (int i = 0; i < Limit * 5; i++)
+        {
+            (await SendAsync(client, "health/live", "127.0.0.1", "203.0.113.50"))
+                .ShouldBe(HttpStatusCode.OK);
+        }
+    }
+
+    [Fact]
     public async Task UntrustedPeer_Should_NotBeAbleToSpoofForwardedFor()
     {
         HttpClient client = factory.CreateClient();
