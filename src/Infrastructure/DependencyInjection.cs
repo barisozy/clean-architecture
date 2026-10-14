@@ -5,6 +5,7 @@ using Infrastructure.Authorization;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
 using Infrastructure.Time;
+using Infrastructure.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,8 @@ public static class DependencyInjection
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
             .AddAuthenticationInternal()
-            .AddAuthorizationInternal();
+            .AddAuthorizationInternal()
+            .AddRefreshTokenCleanup();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -94,6 +96,19 @@ public static class DependencyInjection
         services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddRefreshTokenCleanup(this IServiceCollection services)
+    {
+        services
+            .AddOptions<RefreshTokenCleanupOptions>()
+            .BindConfiguration(RefreshTokenCleanupOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHostedService<RefreshTokenCleanupService>();
 
         return services;
     }
