@@ -10,6 +10,9 @@
     <DockerComposeProjectName>clean-architecture</DockerComposeProjectName>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="packaging\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include=".template.config\template.json" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
@@ -17,7 +20,5 @@
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="CleanArchitecture.Template.csproj" />
-    <None Include="packaging\README.md" />
-    <None Include="packaging\template-content\README.md" />
   </ItemGroup>
 </Project>

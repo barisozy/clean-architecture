@@ -95,6 +95,18 @@ Secrets starting with `dev-only-` are rejected outside the Development environme
 
 A background service deletes refresh tokens that expired more than `RefreshTokenCleanup:RetentionInDays` (default 30) days ago, once every `RefreshTokenCleanup:IntervalInMinutes` (default 60) minutes. Expired tokens are kept for the retention period as an audit trail. The deletion is idempotent, so running several API instances is safe.
 
+### Reverse proxy and rate limiting
+
+Rate limits are partitioned by authenticated user (`sub` claim) and otherwise by client IP. Behind a reverse proxy or load balancer, enable forwarded headers and list the proxies you trust:
+
+```
+ForwardedHeaders__Enabled=true
+ForwardedHeaders__KnownProxies__0=10.0.0.5
+ForwardedHeaders__KnownNetworks__0=10.0.0.0/8
+```
+
+Forwarded headers are ignored by default. Enabling them without at least one known proxy or network fails at startup, because trusting unknown peers would let clients spoof their address.
+
 ## Build and test
 
 Run from the repository root:
