@@ -57,7 +57,7 @@ jobs:
         run: |
           docker compose -f docker-compose.yml up -d --build web-api
           for i in $(seq 1 30); do
-            if curl -fsS http://localhost:5000/health/ready > /dev/null; then
+            if curl -fsS http://127.0.0.1:5000/health/ready > /dev/null; then
               echo "web-api is healthy"
               exit 0
             fi
