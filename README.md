@@ -119,6 +119,24 @@ Forwarded headers are ignored by default. Enabling them without at least one kno
 
 Probe endpoints are exempt from rate limiting and expose no check names or exception details.
 
+### Observability
+
+| Signal | Path |
+| --- | --- |
+| Traces and metrics | OpenTelemetry SDK (`Aspire.ServiceDefaults`) |
+| Logs | Serilog: stdout (compact JSON), Seq in Development, OTLP when configured |
+
+Set the standard OpenTelemetry variables to export to any OTLP backend:
+
+```
+OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4317
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc            # or http/protobuf
+OTEL_SERVICE_NAME=web-api
+OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0
+```
+
+Log records carry the trace and span ids of the active request, so logs and traces can be correlated. Expected business outcomes (validation, not found, conflict) are logged as information, forbidden as warning, and only unexpected failures as errors.
+
 ## Build and test
 
 Run from the repository root:
