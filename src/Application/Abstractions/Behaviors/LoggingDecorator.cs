@@ -7,6 +7,15 @@ namespace Application.Abstractions.Behaviors;
 
 internal static class LoggingDecorator
 {
+    // Expected business outcomes must not look like incidents: only unexpected failures are errors.
+    private static LogLevel GetFailureLogLevel(Error error) =>
+        error.Type switch
+        {
+            ErrorType.Failure => LogLevel.Error,
+            ErrorType.Forbidden => LogLevel.Warning,
+            _ => LogLevel.Information
+        };
+
     internal sealed class CommandHandler<TCommand, TResponse>(
         ICommandHandler<TCommand, TResponse> innerHandler,
         ILogger<CommandHandler<TCommand, TResponse>> logger)
@@ -29,7 +38,7 @@ internal static class LoggingDecorator
             {
                 using (LogContext.PushProperty("Error", result.Error, true))
                 {
-                    logger.LogError("Completed command {Command} with error", commandName);
+                    logger.Log(GetFailureLogLevel(result.Error), "Completed command {Command} with error", commandName);
                 }
             }
 
@@ -59,7 +68,7 @@ internal static class LoggingDecorator
             {
                 using (LogContext.PushProperty("Error", result.Error, true))
                 {
-                    logger.LogError("Completed command {Command} with error", commandName);
+                    logger.Log(GetFailureLogLevel(result.Error), "Completed command {Command} with error", commandName);
                 }
             }
 
@@ -89,7 +98,7 @@ internal static class LoggingDecorator
             {
                 using (LogContext.PushProperty("Error", result.Error, true))
                 {
-                    logger.LogError("Completed query {Query} with error", queryName);
+                    logger.Log(GetFailureLogLevel(result.Error), "Completed query {Query} with error", queryName);
                 }
             }
 
