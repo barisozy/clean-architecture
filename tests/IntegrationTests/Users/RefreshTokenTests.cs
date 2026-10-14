@@ -5,8 +5,10 @@ using System.Text;
 using Application.Users;
 using Domain.Users;
 using Infrastructure.Database;
+using Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace IntegrationTests.Users;
 
@@ -152,6 +154,66 @@ public sealed class RefreshTokenTests : BaseIntegrationTest
 
     private Task<HttpResponseMessage> RefreshAsync(string refreshToken) =>
         _factory.CreateClient().PostAsJsonAsync("users/refresh-token", new { refreshToken });
+
+    [Fact]
+    public async Task Cleanup_Should_DeleteOnlyTokensExpiredBeyondRetention()
+    {
+        HttpResponseMessage register = await _factory.CreateClient().PostAsJsonAsync(
+            "users/register",
+            new
+            {
+                email = $"{Guid.NewGuid():N}@example.com",
+                firstName = "Test",
+                lastName = "User",
+                password = Password
+            });
+        register.EnsureSuccessStatusCode();
+        Guid userId = await register.Content.ReadFromJsonAsync<Guid>();
+
+        DateTime now = DateTime.UtcNow;
+        RefreshToken expiredLongAgo = NewToken(userId, now.AddDays(-31));
+        RefreshToken expiredRecently = NewToken(userId, now.AddDays(-1));
+        RefreshToken active = NewToken(userId, now.AddDays(1));
+
+        await SeedAsync(expiredLongAgo, expiredRecently, active);
+
+        RefreshTokenCleanupService service = _factory.Services
+            .GetServices<IHostedService>()
+            .OfType<RefreshTokenCleanupService>()
+            .Single();
+
+        int deleted = await service.RunOnceAsync(CancellationToken.None);
+
+        deleted.ShouldBe(1);
+
+        List<RefreshToken> rows = await LoadRefreshTokensAsync();
+
+        rows.ShouldNotContain(r => r.Id == expiredLongAgo.Id);
+        rows.ShouldContain(r => r.Id == expiredRecently.Id);
+        rows.ShouldContain(r => r.Id == active.Id);
+    }
+
+    private async Task SeedAsync(params RefreshToken[] tokens)
+    {
+        using IServiceScope scope = _factory.Services.CreateScope();
+        ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        db.RefreshTokens.AddRange(tokens);
+        await db.SaveChangesAsync();
+    }
+
+    private static RefreshToken NewToken(Guid userId, DateTime expiresOnUtc)
+    {
+        var token = RefreshToken.Create(
+            userId,
+            Guid.NewGuid(),
+            Guid.NewGuid().ToString("N"),
+            DateTime.UtcNow.AddDays(-40));
+
+        token.ExpiresOnUtc = expiresOnUtc;
+
+        return token;
+    }
 
     private async Task<List<RefreshToken>> LoadRefreshTokensAsync()
     {

@@ -91,6 +91,10 @@ Logs are written to stdout as compact JSON (one event per line) in every environ
 
 Secrets starting with `dev-only-` are rejected outside the Development environment. Tokens are signed and validated with HS256 only.
 
+### Refresh token cleanup
+
+A background service deletes refresh tokens that expired more than `RefreshTokenCleanup:RetentionInDays` (default 30) days ago, once every `RefreshTokenCleanup:IntervalInMinutes` (default 60) minutes. Expired tokens are kept for the retention period as an audit trail. The deletion is idempotent, so running several API instances is safe.
+
 ## Build and test
 
 Run from the repository root:
