@@ -11,12 +11,7 @@ public sealed class HealthEndpointsTests
     [Fact]
     public async Task Live_Should_ReturnHealthy_WithoutTouchingTheDatabase()
     {
-        // A connection string is required at startup (AddNpgSql), but the liveness
-        // endpoint only runs "self"-tagged checks and never opens a connection.
-        await using var baseFactory = new WebApplicationFactory<Program>();
-        await using WebApplicationFactory<Program> factory = baseFactory.WithWebHostBuilder(builder => builder.UseSetting(
-            "ConnectionStrings:Database",
-            "Host=127.0.0.1;Port=1;Database=unused;Username=u;Password=p;Timeout=1"));
+        await using var factory = new ApiFactory();
         HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("health/live");
@@ -28,11 +23,7 @@ public sealed class HealthEndpointsTests
     [Fact]
     public async Task Ready_Should_ExposeStatusOnly_WhenDatabaseIsUnreachable()
     {
-        await using var baseFactory = new WebApplicationFactory<Program>();
-        await using WebApplicationFactory<Program> factory = baseFactory
-            .WithWebHostBuilder(builder => builder.UseSetting(
-                "ConnectionStrings:Database",
-                "Host=127.0.0.1;Port=1;Database=unused;Username=u;Password=p;Timeout=1"));
+        await using var factory = new ApiFactory();
         HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("health/ready");
@@ -44,19 +35,15 @@ public sealed class HealthEndpointsTests
     [Fact]
     public async Task Production_Should_NotExposeTheDetailedHealthReport()
     {
-        await using var baseFactory = new WebApplicationFactory<Program>();
-        await using WebApplicationFactory<Program> factory = baseFactory
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Production");
-                builder.UseSetting(
-                    "ConnectionStrings:Database",
-                    "Host=127.0.0.1;Port=1;Database=unused;Username=u;Password=p;Timeout=1");
-                builder.UseSetting("Jwt:Secret", "production-like-secret-0123456789-0123456789");
-                builder.UseSetting("Jwt:Issuer", "issuer");
-                builder.UseSetting("Jwt:Audience", "audience");
-                builder.UseSetting("Jwt:ExpirationInMinutes", "60");
-            });
+        await using ApiFactory baseFactory = new();
+        await using WebApplicationFactory<Program> factory = baseFactory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Production");
+            builder.UseSetting("Jwt:Secret", "production-like-secret-0123456789-0123456789");
+            builder.UseSetting("Jwt:Issuer", "issuer");
+            builder.UseSetting("Jwt:Audience", "audience");
+            builder.UseSetting("Jwt:ExpirationInMinutes", "60");
+        });
         HttpClient client = factory.CreateClient();
 
         (await client.GetAsync("health")).StatusCode.ShouldBe(HttpStatusCode.NotFound);

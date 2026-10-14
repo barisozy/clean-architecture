@@ -58,6 +58,8 @@ docker compose up --build
 | Seq | <http://localhost:8081> | `admin` / `local-dev-only` |
 | PostgreSQL | `localhost:5432` | `postgres` / `postgres` |
 
+All published ports are bound to `127.0.0.1`, so the stack is reachable only from the local machine. To expose a service on your network, change the binding deliberately; the local credentials are development defaults.
+
 In pgAdmin, register a server with host `postgres`, port `5432`, maintenance database `clean-architecture`, username `postgres` and password `postgres`.
 
 ## Run with Aspire
