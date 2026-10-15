@@ -161,11 +161,25 @@ namespace Infrastructure.Database.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
 
-                    b.ToTable("users", "public");
-                });
+                            b.ToTable("users", "public");
+                        });
 
-            modelBuilder.Entity("Domain.Todos.TodoItem", b =>
-                {
+                    modelBuilder.Entity("UserPermissions", b =>
+                    {
+                        b.Property<Guid>("UserId")
+                            .HasColumnType("uuid")
+                            .HasColumnName("user_id");
+
+                        b.HasKey("UserId")
+                            .HasName("pk_user_permissions");
+
+                        b.ToTable("user_permissions", "public");
+
+                        b.Navigation("User");
+                    });
+
+                    modelBuilder.Entity("Domain.Todos.TodoItem", b =>
+                    {
                     b.HasOne("Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
