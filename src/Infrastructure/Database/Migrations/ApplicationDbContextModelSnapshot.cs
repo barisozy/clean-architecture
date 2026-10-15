@@ -174,8 +174,6 @@ namespace Infrastructure.Database.Migrations
                             .HasName("pk_user_permissions");
 
                         b.ToTable("user_permissions", "public");
-
-                        b.Navigation("User");
                     });
 
                     modelBuilder.Entity("Domain.Todos.TodoItem", b =>

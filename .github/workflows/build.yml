@@ -47,14 +47,8 @@ jobs:
       - name: Test
         run: dotnet test "$SOLUTION" --configuration Release --no-restore --no-build
 
-      # Apply database migrations before tests in non-docker context
-      - name: Apply Database Migrations
-        if: runner.os == 'Linux' && !startsWith(github.ref, 'refs/heads/main')
-        run: |
-          $migrationProjects = Get-ChildItem -Path "$env:GITHUB_WORKSPACE/src/Infrastructure" -Filter "*Migrations*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($migrationProjects) {
-            & dotnet ef database update --project $migrationProjects.Name --startup-project "$env:GITHUB_WORKSPACE/src/Web.Api" --configuration Release
-          }
+      # Integration tests handle database migrations via Testcontainers
+      # Docker smoke test runs after build for regression verification
 
       - name: Publish
         run: dotnet publish "$SOLUTION" --configuration Release --no-restore --no-build
