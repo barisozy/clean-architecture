@@ -30,6 +30,11 @@ internal sealed class RegisterUserCommandHandler(IApplicationDbContext context, 
 
         context.Users.Add(user);
 
+        foreach (string permission in Permissions.DefaultForNewUsers)
+        {
+            context.UserPermissions.Add(UserPermission.Create(user.Id, permission));
+        }
+
         await context.SaveChangesAsync(cancellationToken);
 
         return user.Id;

@@ -59,4 +59,29 @@ public sealed class RegisterUserCommandHandlerTests : BaseHandlerTest
         user.PasswordHash.ShouldBe("hashed-password");
         user.DomainEvents.ShouldContain(domainEvent => domainEvent is UserRegisteredDomainEvent);
     }
+
+    [Fact]
+    public async Task Handle_Should_GrantDefaultPermissions_WhenValid()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+
+        IPasswordHasher passwordHasher = Substitute.For<IPasswordHasher>();
+        passwordHasher.Hash(Command.Password).Returns("hashed-password");
+
+        var handler = new RegisterUserCommandHandler(context, passwordHasher);
+
+        // Act
+        Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+
+        string[] permissions = await context.UserPermissions
+            .Where(p => p.UserId == result.Value)
+            .Select(p => p.Permission)
+            .ToArrayAsync();
+
+        permissions.ShouldBe(Permissions.DefaultForNewUsers, ignoreOrder: true);
+    }
 }

@@ -9,6 +9,7 @@ public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<UserPermission> UserPermissions { get; }
     DbSet<TodoItem> TodoItems { get; }
 
     DatabaseFacade Database { get; }
