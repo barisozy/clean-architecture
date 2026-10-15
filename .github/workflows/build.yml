@@ -22,6 +22,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Cache NuGet packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: Restore
         run: |
           SOLUTION="$(find . -maxdepth 1 -name '*.slnx' -print -quit)"
@@ -37,6 +46,15 @@ jobs:
 
       - name: Test
         run: dotnet test "$SOLUTION" --configuration Release --no-restore --no-build
+
+      # Apply database migrations before tests in non-docker context
+      - name: Apply Database Migrations
+        if: runner.os == 'Linux' && !startsWith(github.ref, 'refs/heads/main')
+        run: |
+          $migrationProjects = Get-ChildItem -Path "$env:GITHUB_WORKSPACE/src/Infrastructure" -Filter "*Migrations*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($migrationProjects) {
+            & dotnet ef database update --project $migrationProjects.Name --startup-project "$env:GITHUB_WORKSPACE/src/Web.Api" --configuration Release
+          }
 
       - name: Publish
         run: dotnet publish "$SOLUTION" --configuration Release --no-restore --no-build
@@ -55,6 +73,9 @@ jobs:
 
       - name: Compose smoke test
         run: |
+          # Run migrations in Docker container before starting the app
+          docker compose -f docker-compose.yml exec web-api dotnet ef database update --project src/Infrastructure/Data --startup-project src/Web.Api --configuration Release || true
+
           docker compose -f docker-compose.yml up -d --build web-api
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:5000/health/ready > /dev/null; then
