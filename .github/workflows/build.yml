@@ -73,10 +73,31 @@ jobs:
 
       - name: Compose smoke test
         run: |
-          # Run migrations in Docker container before starting the app
-          docker compose -f docker-compose.yml exec web-api dotnet ef database update --project src/Infrastructure/Data --startup-project src/Web.Api --configuration Release || true
-
+          # Start the Docker container
           docker compose -f docker-compose.yml up -d --build web-api
+
+          # Wait for the app to start (health /latest)
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5000/health/latest > /dev/null; then
+              echo "web-api is starting, running migrations..."
+            else
+              break
+            fi
+            sleep 2
+          done
+
+          # Run database migrations
+          docker compose -f docker-compose.yml exec web-api dotnet ef database update --project src/Infrastructure/Data --no-build --no-restore || true
+
+          # Wait for the readiness check (health /ready)
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5000/health/ready > /dev/null; then
+              echo "web-api is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:5000/health/ready > /dev/null; then
               echo "web-api is healthy"
