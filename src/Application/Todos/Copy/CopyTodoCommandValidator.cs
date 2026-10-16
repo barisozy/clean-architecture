@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace Application.Todos.Copy;
 
-public class CopyTodoCommandValidator : AbstractValidator<CopyTodoCommand>
+internal sealed class CopyTodoCommandValidator : AbstractValidator<CopyTodoCommand>
 {
     public CopyTodoCommandValidator()
     {

@@ -1,0 +1,11 @@
+# The .editorconfig asks for CRLF in C# files; pin it so every platform checks out the same bytes.
+*.cs text eol=crlf
+*.csproj text eol=crlf
+*.props text eol=crlf
+*.slnx text eol=crlf
+
+# Normalize repository blobs for everything else.
+* text=auto
+
+# Binary assets must never be normalized.
+*.png binary

@@ -1,13 +1,13 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Domain.Todos;
 
 namespace Application.Todos.Create;
 
-public sealed class CreateTodoCommand : ICommand<Guid>
+public sealed record CreateTodoCommand : ICommand<Guid>
 {
-    public Guid UserId { get; set; }
-    public string Description { get; set; }
-    public DateTime? DueDate { get; set; }
-    public List<string> Labels { get; set; } = [];
-    public Priority Priority { get; set; }
+    public Guid UserId { get; init; }
+    public string Description { get; init; }
+    public DateTime? DueDate { get; init; }
+    public List<string> Labels { get; init; } = [];
+    public Priority Priority { get; init; }
 }

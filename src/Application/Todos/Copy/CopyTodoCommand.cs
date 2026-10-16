@@ -2,8 +2,8 @@ using Application.Abstractions.Messaging;
 
 namespace Application.Todos.Copy;
 
-public sealed class CopyTodoCommand : ICommand<Guid>
+public sealed record CopyTodoCommand : ICommand<Guid>
 {
-    public Guid UserId { get; set; }
-    public Guid TodoId { get; set; }
+    public Guid UserId { get; init; }
+    public Guid TodoId { get; init; }
 }
