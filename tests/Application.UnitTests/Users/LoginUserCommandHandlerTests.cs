@@ -32,7 +32,7 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.NotFoundByEmail);
+        result.Error.ShouldBe(UserErrors.InvalidCredentials);
 
         // Same work as the wrong-password path: response time must not reveal whether the user exists.
         passwordHasher.Received(1).Verify(Arg.Any<string>(), Arg.Any<string>());
@@ -61,7 +61,7 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.NotFoundByEmail);
+        result.Error.ShouldBe(UserErrors.InvalidCredentials);
         passwordHasher.Received(1).Verify(Password, "hash");
     }
 
@@ -99,6 +99,34 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
         refreshToken.FamilyId.ShouldNotBe(Guid.Empty);
         refreshToken.CreatedOnUtc.ShouldBe(dateTimeProvider.UtcNow);
         refreshToken.ExpiresOnUtc.ShouldBeGreaterThan(dateTimeProvider.UtcNow);
+    }
+
+    [Fact]
+    public async Task Handle_Should_FindUser_WhenEmailCaseDiffers()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        await SeedUserAsync(context);
+
+        IPasswordHasher passwordHasher = Substitute.For<IPasswordHasher>();
+        passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
+
+        ITokenProvider tokenProvider = Substitute.For<ITokenProvider>();
+        tokenProvider.Create(Arg.Any<User>()).Returns("access-token");
+        tokenProvider.GenerateRefreshToken().Returns("refresh-token");
+
+        IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
+        dateTimeProvider.UtcNow.Returns(DateTime.UtcNow);
+
+        var handler = new LoginUserCommandHandler(context, passwordHasher, tokenProvider, dateTimeProvider);
+
+        // Act
+        Result<AccessTokensResponse> result = await handler.Handle(
+            new LoginUserCommand("TEST@Example.COM", Password),
+            CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
     }
 
     private static async Task SeedUserAsync(TestDbContext context)

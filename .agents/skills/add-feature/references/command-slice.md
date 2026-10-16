@@ -41,17 +41,21 @@ Public class, same folder. Auto-registered and executed by `ValidationDecorator`
 
 ```csharp
 using FluentValidation;
+using SharedKernel;
 
 namespace Application.Todos.Create;
 
 public class CreateTodoCommandValidator : AbstractValidator<CreateTodoCommand>
 {
-    public CreateTodoCommandValidator()
+    public CreateTodoCommandValidator(IDateTimeProvider dateTimeProvider)
     {
         RuleFor(c => c.UserId).NotEmpty();
         RuleFor(c => c.Priority).IsInEnum();
         RuleFor(c => c.Description).NotEmpty().MaximumLength(255);
-        RuleFor(c => c.DueDate).GreaterThanOrEqualTo(DateTime.Today).When(x => x.DueDate.HasValue);
+        RuleFor(c => c.DueDate)
+            .Must(dueDate => dueDate >= dateTimeProvider.UtcNow.Date)
+            .WithMessage("'Due Date' must not be in the past.")
+            .When(c => c.DueDate.HasValue);
     }
 }
 ```
@@ -106,7 +110,7 @@ internal sealed class ArchiveTodoCommandHandler(
 ```
 
 Notes:
-- Ownership: either filter by `userContext.UserId` in the query (preferred) or compare explicitly and return `Result.Failure(UserErrors.Unauthorized())`.
+- Ownership: either filter by `userContext.UserId` in the query (preferred) or compare explicitly and return `Result.Failure(UserErrors.Forbidden())`.
 - `IDateTimeProvider` (from `SharedKernel`) for timestamps — never `DateTime.UtcNow` directly.
 - If the command invalidates cached query data, inject `HybridCache` and call `cache.RemoveAsync({Feature}CacheKeys.X(...), cancellationToken)` after saving.
 - For a returning command (`ICommand<Guid>`), return the value directly — `Result<T>` has an implicit conversion: `return todoItem.Id;`.
@@ -121,7 +125,7 @@ public static Error AlreadyArchived(Guid todoItemId) => Error.Problem(
     $"The todo item with Id = '{todoItemId}' is already archived.");
 ```
 
-Error type → HTTP status (via `CustomResults.Problem`): `NotFound` → 404, `Conflict` → 409, `Problem`/`Validation` → 400, `Failure` → 500.
+Error type → HTTP status (via `CustomResults.Problem`): `NotFound` → 404, `Conflict` → 409, `Unauthorized` → 401, `Forbidden` → 403, `Problem`/`Validation` → 400, `Failure` → 500.
 
 Domain event, one file each in `src/Domain/{Feature}/`:
 

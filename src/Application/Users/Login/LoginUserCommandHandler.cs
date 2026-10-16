@@ -19,22 +19,25 @@ internal sealed class LoginUserCommandHandler(
 
     public async Task<Result<AccessTokensResponse>> Handle(LoginUserCommand command, CancellationToken cancellationToken)
     {
+        // Emails are stored normalized so lookups are case-insensitive.
+        string email = EmailNormalizer.Normalize(command.Email);
+
         User? user = await context.Users
             .AsNoTracking()
-            .SingleOrDefaultAsync(u => u.Email == command.Email, cancellationToken);
+            .SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
 
         if (user is null)
         {
             _ = passwordHasher.Verify(command.Password, DummyPasswordHash);
 
-            return Result.Failure<AccessTokensResponse>(UserErrors.NotFoundByEmail);
+            return Result.Failure<AccessTokensResponse>(UserErrors.InvalidCredentials);
         }
 
         bool verified = passwordHasher.Verify(command.Password, user.PasswordHash);
 
         if (!verified)
         {
-            return Result.Failure<AccessTokensResponse>(UserErrors.NotFoundByEmail);
+            return Result.Failure<AccessTokensResponse>(UserErrors.InvalidCredentials);
         }
 
         string accessToken = tokenProvider.Create(user);

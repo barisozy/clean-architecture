@@ -31,7 +31,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
     }
 
     [Fact]
-    public async Task Login_Should_ReturnProblem_WhenPasswordIsInvalid()
+    public async Task Login_Should_ReturnUnauthorized_WhenPasswordIsInvalid()
     {
         // Arrange
         string email = UniqueEmail();
@@ -43,7 +43,53 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
             new { email, password = "WrongPassword1" });
 
         // Assert
-        response.IsSuccessStatusCode.ShouldBeFalse();
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Login_Should_AcceptEmailInDifferentCase()
+    {
+        // Arrange
+        string email = UniqueEmail();
+        await RegisterUserAsync(email);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "users/login",
+            new { email = email.ToUpperInvariant(), password = "Password123" });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Register_Should_ReturnConflict_WhenEmailDiffersOnlyByCase()
+    {
+        // Arrange
+        string email = UniqueEmail();
+        await RegisterUserAsync(email);
+
+        // Act
+        HttpResponseMessage response = await RegisterAsync(email.ToUpperInvariant());
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task Register_Should_ReturnConflict_ForExactlyOneOfTwoConcurrentRequests()
+    {
+        // Arrange
+        string email = UniqueEmail();
+
+        // Act
+        HttpResponseMessage[] responses = await Task.WhenAll(
+            RegisterAsync(email),
+            RegisterAsync(email));
+
+        // Assert
+        responses.Count(r => r.StatusCode == HttpStatusCode.OK).ShouldBe(1);
+        responses.Count(r => r.StatusCode == HttpStatusCode.Conflict).ShouldBe(1);
     }
 
     [Fact]
@@ -77,4 +123,9 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
+
+    private Task<HttpResponseMessage> RegisterAsync(string email) =>
+        HttpClient.PostAsJsonAsync(
+            "users/register",
+            new { email, firstName = "Test", lastName = "User", password = "Password123" });
 }

@@ -1,6 +1,7 @@
 # Clean Architecture Template
 
 [![Build](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml)
+[![Template](https://github.com/barisozy/clean-architecture/actions/workflows/template.yml/badge.svg?branch=main)](https://github.com/barisozy/clean-architecture/actions/workflows/template.yml)
 [![NuGet version](https://img.shields.io/nuget/v/Barisozy.CleanArchitecture.Template)](https://www.nuget.org/packages/Barisozy.CleanArchitecture.Template)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Barisozy.CleanArchitecture.Template)](https://www.nuget.org/packages/Barisozy.CleanArchitecture.Template)
 
@@ -17,7 +18,7 @@ A **.NET 10** starter for building APIs with clear boundaries between the Domain
 
 ### Infrastructure
 
-- JWT authentication with refresh tokens and token rotation.
+- JWT authentication with refresh tokens, token rotation and reuse detection.
 - Permission-based authorization.
 - EF Core with PostgreSQL, snake-case naming and migrations.
 - HybridCache with cache invalidation.
@@ -87,6 +88,14 @@ Jwt__Audience=<audience>
 Jwt__ExpirationInMinutes=60
 ```
 
+### Authentication and refresh tokens
+
+Emails are stored trimmed and lowercased, and sign-in and registration treat addresses case-insensitively, so `User@Example.com` and `user@example.com` are the same account. Registering an address that differs only in case from an existing one returns `409 Conflict`, and invalid credentials return `401 Unauthorized`.
+
+Every refresh rotates the token: the old token is marked as used and a new one is issued for the same family. Presenting an already-used token revokes the whole family, because the token may have been stolen. A client retry or a second tab can replay a just-rotated token, so `RefreshTokenReuse:ReuseGraceSeconds` (default `0`, strict) can be set to a small window (for example `10`) in which a replayed token is still rejected but the family is not revoked.
+
+Logout (`POST users/logout` with the refresh token) requires an authenticated request and revokes the caller's token family; access tokens stay valid until they expire. Tokens that are unknown or belong to another user are ignored with `204 No Content`, so the endpoint is idempotent and reveals nothing.
+
 ### Logging
 
 Logs are written to stdout as compact JSON (one event per line) in every environment. Override levels or add sinks through configuration or environment variables, for example `Serilog__MinimumLevel__Default=Warning`. Development additionally writes to Seq.
@@ -135,7 +144,7 @@ OTEL_SERVICE_NAME=web-api
 OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0
 ```
 
-Log records carry the trace and span ids of the active request, so logs and traces can be correlated. Expected business outcomes (validation, not found, conflict) are logged as information, forbidden as warning, and only unexpected failures as errors.
+Log records carry the trace and span ids of the active request, and request completion logs carry the authenticated user id (`UserId`), so logs and traces can be correlated. Expected business outcomes (validation, not found, conflict) are logged as information, forbidden as warning, and only unexpected failures as errors.
 
 ## Build and test
 
@@ -156,6 +165,17 @@ Install the template package and generate a new solution:
 dotnet new install Barisozy.CleanArchitecture.Template
 dotnet new cleanarch --name MyCleanArchitecture
 ```
+
+The `Template` workflow packs the template, generates a solution from it and runs the generated tests, so every published package is verified end to end.
+
+## Known limitations
+
+This template is a starting point rather than a finished product:
+
+- There is no email verification, password reset or account lockout flow.
+- Rate limiting and `HybridCache` use in-process state; a multi-instance deployment should back them with a shared store (for example Redis).
+- Refresh tokens are opaque, stored hashed and revoked by family, but they are not bound to a device fingerprint.
+- The API only exposes register, login, refresh, logout and get-user endpoints; there is no user administration.
 
 ## Contributing
 

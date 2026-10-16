@@ -5,6 +5,7 @@ using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SharedKernel;
 
 namespace Application.Users.Refresh;
@@ -13,6 +14,7 @@ internal sealed partial class RefreshTokenCommandHandler(
     IApplicationDbContext context,
     ITokenProvider tokenProvider,
     IDateTimeProvider dateTimeProvider,
+    IOptions<RefreshTokenReuseOptions> reuseOptions,
     ILogger<RefreshTokenCommandHandler> logger) : ICommandHandler<RefreshTokenCommand, AccessTokensResponse>
 {
     public async Task<Result<AccessTokensResponse>> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
@@ -69,10 +71,14 @@ internal sealed partial class RefreshTokenCommandHandler(
         var reused = await context.RefreshTokens
             .AsNoTracking()
             .Where(rt => rt.TokenHash == tokenHash && rt.UsedOnUtc != null)
-            .Select(rt => new { rt.FamilyId, rt.UserId })
+            .Select(rt => new { rt.FamilyId, rt.UserId, rt.UsedOnUtc })
             .SingleOrDefaultAsync(cancellationToken);
 
-        if (reused is null)
+        if (reused is null ||
+            !RefreshTokenReusePolicy.ShouldRevokeFamily(
+                reused.UsedOnUtc!.Value,
+                now,
+                reuseOptions.Value.ReuseGraceSeconds))
         {
             return;
         }

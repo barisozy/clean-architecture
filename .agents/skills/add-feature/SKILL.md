@@ -25,7 +25,7 @@ Scaffold a full use case following this template's conventions: an Application-l
 - **Return `Result` / `Result<T>`, never throw** for expected failures. Errors come from static factory methods on `{Entity}Errors` in the Domain layer with codes like `"Todos.NotFound"`.
 - **Validation lives in a `{Command}Validator`** (FluentValidation). It runs automatically via `ValidationDecorator` — the handler never validates input shape itself. Queries have no validators (the decorator only wraps commands).
 - **Data access via `IApplicationDbContext`** (from `Application.Abstractions.Data`) — never reference Infrastructure from Application.
-- **Authorization check** in handlers that act on user-owned data: compare `IUserContext.UserId` and return `UserErrors.Unauthorized()` on mismatch or filter queries by `userContext.UserId`.
+- **Authorization check** in handlers that act on user-owned data: compare `IUserContext.UserId` and return `UserErrors.Forbidden()` on mismatch or filter queries by `userContext.UserId`.
 - **Queries project directly to a `{X}Response` DTO** with `.Select(...)` — never return domain entities. Cache hot reads with `HybridCache` using a `{Feature}CacheKeys` static class; invalidate in the commands that mutate the cached data.
 - **Endpoints** implement `IEndpoint`, resolve the handler interface directly from DI, use `result.Match(Results.Ok, CustomResults.Problem)` (or `Results.NoContent` for void commands), tag with the `Tags` class and call `.RequireAuthorization()`.
 

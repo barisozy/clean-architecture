@@ -1,0 +1,67 @@
+name: Template
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: "10.x"
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-template-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      # The template is shipped as a NuGet package. This job proves that the packed package
+      # installs and that a solution generated from it restores, builds and passes its tests.
+      - name: Pack template
+        run: dotnet pack CleanArchitecture.Template.csproj --configuration Release --output artifacts
+
+      - name: Install template
+        run: dotnet new install artifacts/*.nupkg
+
+      - name: Create a solution from the template
+        run: dotnet new cleanarch --name SmokeTest --output smoke-test
+
+      - name: Restore
+        working-directory: smoke-test
+        run: |
+          SOLUTION="$(find . -maxdepth 1 -name '*.slnx' -print -quit)"
+          if [[ -z "$SOLUTION" ]]; then
+            echo "::error::The template did not produce a solution file."
+            exit 1
+          fi
+          dotnet restore "$SOLUTION"
+
+      - name: Build
+        working-directory: smoke-test
+        run: |
+          SOLUTION="$(find . -maxdepth 1 -name '*.slnx' -print -quit)"
+          dotnet build "$SOLUTION" --configuration Release --no-restore
+
+      - name: Test
+        working-directory: smoke-test
+        run: |
+          SOLUTION="$(find . -maxdepth 1 -name '*.slnx' -print -quit)"
+          dotnet test "$SOLUTION" --configuration Release --no-restore --no-build
