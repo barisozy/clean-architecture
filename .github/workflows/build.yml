@@ -47,9 +47,37 @@ jobs:
       - name: Test
         run: dotnet test "$SOLUTION" --configuration Release --no-restore --no-build
 
-      # Integration tests handle database migrations via Testcontainers
-      # Docker smoke test runs after build for regression verification
-
+      # Integration tests apply their migrations through Testcontainers, so this job
+      # does not need a database migration step before running them.
       - name: Publish
         run: dotnet publish "$SOLUTION" --configuration Release --no-restore --no-build
 
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build image
+        run: docker build -f src/Web.Api/Dockerfile -t web-api:ci .
+
+      - name: Compose smoke test
+        run: |
+          docker compose -f docker-compose.yml up -d --build web-api
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5000/health/ready > /dev/null; then
+              echo "web-api is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::web-api did not become healthy within 60s"
+          docker compose -f docker-compose.yml logs web-api
+          exit 1
+
+      - name: Teardown
+        if: always()
+        run: docker compose -f docker-compose.yml down -v

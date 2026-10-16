@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using Domain.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,20 @@ public sealed class AuthorizationTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Authenticated_GetOwnUser_Returns200()
+    {
+        // Arrange
+        (Guid userId, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync($"users/{userId}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Authenticated_GetOtherUser_Returns403()
     {
         // Arrange
@@ -40,6 +55,38 @@ public sealed class AuthorizationTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Authenticated_WithoutGrant_IsDenied()
+    {
+        // Arrange
+        (Guid userId, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+        await _factory.RevokePermissionsAsync(userId);
+
+        // Act: own user, so only the missing users:access grant can produce the 403.
+        HttpResponseMessage response = await HttpClient.GetAsync($"users/{userId}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Authenticated_UnknownUser_IsDenied()
+    {
+        // Arrange
+        using IServiceScope scope = _factory.Services.CreateScope();
+        IAuthorizationService authz = scope.ServiceProvider.GetRequiredService<IAuthorizationService>();
+
+        // Act
+        AuthorizationResult result = await authz.AuthorizeAsync(
+            Authenticated(Guid.NewGuid()),
+            null,
+            Permissions.UsersAccess);
+
+        // Assert
+        result.Succeeded.ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task Authenticated_UnknownPermission_IsDenied()
     {
         // Arrange
@@ -47,7 +94,7 @@ public sealed class AuthorizationTests : BaseIntegrationTest
         IAuthorizationService authz = scope.ServiceProvider.GetRequiredService<IAuthorizationService>();
 
         // Act
-        AuthorizationResult result = await authz.AuthorizeAsync(Authenticated(), null, "orders:delete");
+        AuthorizationResult result = await authz.AuthorizeAsync(Authenticated(Guid.NewGuid()), null, "orders:delete");
 
         // Assert
         result.Succeeded.ShouldBeFalse();
@@ -57,11 +104,12 @@ public sealed class AuthorizationTests : BaseIntegrationTest
     public async Task Authenticated_KnownPermission_IsAllowed()
     {
         // Arrange
+        (Guid userId, _) = await RegisterAndLoginAsync();
         using IServiceScope scope = _factory.Services.CreateScope();
         IAuthorizationService authz = scope.ServiceProvider.GetRequiredService<IAuthorizationService>();
 
         // Act
-        AuthorizationResult result = await authz.AuthorizeAsync(Authenticated(), null, "users:access");
+        AuthorizationResult result = await authz.AuthorizeAsync(Authenticated(userId), null, Permissions.UsersAccess);
 
         // Assert
         result.Succeeded.ShouldBeTrue();
@@ -76,14 +124,14 @@ public sealed class AuthorizationTests : BaseIntegrationTest
         var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
         // Act
-        AuthorizationResult result = await authz.AuthorizeAsync(anonymous, null, "users:access");
+        AuthorizationResult result = await authz.AuthorizeAsync(anonymous, null, Permissions.UsersAccess);
 
         // Assert
         result.Succeeded.ShouldBeFalse();
     }
 
-    private static ClaimsPrincipal Authenticated() =>
+    private static ClaimsPrincipal Authenticated(Guid userId) =>
         new(new ClaimsIdentity(
-            [new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())],
+            [new Claim(ClaimTypes.NameIdentifier, userId.ToString())],
             authenticationType: "test"));
 }
