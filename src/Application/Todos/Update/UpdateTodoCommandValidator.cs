@@ -1,3 +1,4 @@
+using Domain.Todos;
 using FluentValidation;
 
 namespace Application.Todos.Update;
@@ -8,6 +9,6 @@ internal sealed class UpdateTodoCommandValidator : AbstractValidator<UpdateTodoC
     {
         RuleFor(c => c.TodoItemId).NotEmpty();
 
-        RuleFor(c => c.Description).NotEmpty().MaximumLength(500);
+        RuleFor(c => c.Description).NotEmpty().MaximumLength(TodoItem.MaxDescriptionLength);
     }
 }

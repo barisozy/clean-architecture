@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using Shouldly;
 
 namespace IntegrationTests.Users;
@@ -29,5 +30,19 @@ public sealed class LoginTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         unknownEmail.StatusCode.ShouldBe(wrongPassword.StatusCode);
         unknownEmail.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Theory]
+    [InlineData("""{"email":null,"password":null}""")]
+    [InlineData("""{"email":"","password":""}""")]
+    [InlineData("""{"email":"not-an-email","password":"Str0ng!Passw0rd"}""")]
+    public async Task Login_Should_ReturnBadRequest_WhenPayloadIsInvalid(string json)
+    {
+        // Act: must fail validation instead of reaching the password hasher.
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await HttpClient.PostAsync("users/login", content);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 }

@@ -90,7 +90,7 @@ Jwt__ExpirationInMinutes=60
 
 ### Authentication and refresh tokens
 
-Emails are stored trimmed and lowercased, and sign-in and registration treat addresses case-insensitively, so `User@Example.com` and `user@example.com` are the same account. Registering an address that differs only in case from an existing one returns `409 Conflict`, and invalid credentials return `401 Unauthorized`.
+Emails are stored trimmed and lowercased, and sign-in and registration treat addresses case-insensitively, so `User@Example.com` and `user@example.com` are the same account. Registering an address that differs only in case from an existing one returns `409 Conflict`, invalid credentials return `401 Unauthorized`, and requests with missing or malformed credentials are rejected with `400 Bad Request` before any password verification.
 
 Every refresh rotates the token: the old token is marked as used and a new one is issued for the same family. Presenting an already-used token revokes the whole family, because the token may have been stolen. A client retry or a second tab can replay a just-rotated token, so `RefreshTokenReuse:ReuseGraceSeconds` (default `0`, strict) can be set to a small window (for example `10`) in which a replayed token is still rejected but the family is not revoked.
 

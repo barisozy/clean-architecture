@@ -1,4 +1,4 @@
-# Clean Architecture Agent Skills for Claude Code
+# Clean Architecture Agent Skills
 
 A skill pack that teaches Claude Code the conventions of the Clean Architecture template — so every feature it builds looks like you wrote it: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints and full test coverage.
 
@@ -15,13 +15,13 @@ You don't have to invoke them explicitly — once installed, Claude Code picks t
 
 ## Installation
 
-The skills live in `.claude/skills/`. If you cloned the template, they're already active — just open the repo in Claude Code.
+The skills live in `.agents/skills/`. If you cloned the template, they're already active — just open the repo in your agent.
 
 To use them in another project based on this template, copy the folder:
 
 ```
 your-project/
-└── .claude/
+└── .agents/
     └── skills/
         ├── add-feature/
         ├── add-entity/

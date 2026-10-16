@@ -14,7 +14,7 @@ namespace Application.Todos.Archive;
 public sealed record ArchiveTodoCommand(Guid TodoItemId) : ICommand;
 ```
 
-Class with init-style setters when there are many parameters (matches `CreateTodoCommand`):
+Class with `init`-style setters when there are many parameters (matches `CreateTodoCommand`):
 
 ```csharp
 using Application.Abstractions.Messaging;
@@ -22,13 +22,13 @@ using Domain.Todos;
 
 namespace Application.Todos.Create;
 
-public sealed class CreateTodoCommand : ICommand<Guid>
+public sealed record CreateTodoCommand : ICommand<Guid>
 {
-    public Guid UserId { get; set; }
-    public string Description { get; set; }
-    public DateTime? DueDate { get; set; }
-    public List<string> Labels { get; set; } = [];
-    public Priority Priority { get; set; }
+    public Guid UserId { get; init; }
+    public string Description { get; init; }
+    public DateTime? DueDate { get; init; }
+    public List<string> Labels { get; init; } = [];
+    public Priority Priority { get; init; }
 }
 ```
 
@@ -37,21 +37,22 @@ public sealed class CreateTodoCommand : ICommand<Guid>
 
 ## Validator
 
-Public class, same folder. Auto-registered and executed by `ValidationDecorator` before the handler runs.
+`internal sealed` class, same folder. Auto-registered and executed by `ValidationDecorator` before the handler runs.
 
 ```csharp
+using Domain.Todos;
 using FluentValidation;
 using SharedKernel;
 
 namespace Application.Todos.Create;
 
-public class CreateTodoCommandValidator : AbstractValidator<CreateTodoCommand>
+internal sealed class CreateTodoCommandValidator : AbstractValidator<CreateTodoCommand>
 {
     public CreateTodoCommandValidator(IDateTimeProvider dateTimeProvider)
     {
         RuleFor(c => c.UserId).NotEmpty();
         RuleFor(c => c.Priority).IsInEnum();
-        RuleFor(c => c.Description).NotEmpty().MaximumLength(255);
+        RuleFor(c => c.Description).NotEmpty().MaximumLength(TodoItem.MaxDescriptionLength);
         RuleFor(c => c.DueDate)
             .Must(dueDate => dueDate >= dateTimeProvider.UtcNow.Date)
             .WithMessage("'Due Date' must not be in the past.")
