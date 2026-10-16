@@ -164,6 +164,23 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("users", "public");
                 });
 
+            modelBuilder.Entity("Domain.Users.UserPermission", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Permission")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("permission");
+
+                    b.HasKey("UserId", "Permission")
+                        .HasName("pk_user_permissions");
+
+                    b.ToTable("user_permissions", "public");
+                });
+
             modelBuilder.Entity("Domain.Todos.TodoItem", b =>
                 {
                     b.HasOne("Domain.Users.User", null)
@@ -184,6 +201,16 @@ namespace Infrastructure.Database.Migrations
                         .HasConstraintName("fk_refresh_tokens_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Users.UserPermission", b =>
+                {
+                    b.HasOne("Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_permissions_users_user_id");
                 });
 #pragma warning restore 612, 618
         }

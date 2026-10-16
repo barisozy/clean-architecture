@@ -1,7 +1,7 @@
 using Application.Abstractions.Data;
+using Microsoft.EntityFrameworkCore;
 using Domain.Todos;
 using Domain.Users;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.UnitTests.Abstractions;
 
@@ -16,5 +16,15 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public DbSet<UserPermission> UserPermissions { get; set; }
+
     public DbSet<TodoItem> TodoItems { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Configure UserPermission compound key for in-memory provider validation
+        modelBuilder.Entity<UserPermission>(e => e.HasKey(x => new { x.UserId, x.Permission }));
+    }
 }

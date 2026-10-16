@@ -16,6 +16,8 @@ public sealed class ApplicationDbContext(
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public DbSet<UserPermission> UserPermissions { get; set; }
+
     public DbSet<TodoItem> TodoItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

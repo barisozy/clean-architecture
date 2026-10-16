@@ -22,6 +22,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Cache NuGet packages
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: Restore
         run: |
           SOLUTION="$(find . -maxdepth 1 -name '*.slnx' -print -quit)"
@@ -38,6 +47,8 @@ jobs:
       - name: Test
         run: dotnet test "$SOLUTION" --configuration Release --no-restore --no-build
 
+      # Integration tests apply their migrations through Testcontainers, so this job
+      # does not need a database migration step before running them.
       - name: Publish
         run: dotnet publish "$SOLUTION" --configuration Release --no-restore --no-build
 
