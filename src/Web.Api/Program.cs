@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security.Claims;
 using Application;
 using Infrastructure;
 using Scalar.AspNetCore;
@@ -10,9 +11,13 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Host.UseSerilog((context, loggerConfig) => loggerConfig
-    .ReadFrom.Configuration(context.Configuration)
-    .WriteToOtlpIfConfigured(context.Configuration, context.HostingEnvironment));
+// preserveStaticLogger keeps the static Log.Logger untouched: each host owns and disposes only
+// its own logger, which matters when several hosts run in one process (integration tests).
+builder.Host.UseSerilog(
+    (context, loggerConfig) => loggerConfig
+        .ReadFrom.Configuration(context.Configuration)
+        .WriteToOtlpIfConfigured(context.Configuration, context.HostingEnvironment),
+    preserveStaticLogger: true);
 
 builder.Services.AddOpenApiWithAuth();
 
@@ -50,7 +55,23 @@ app.MapHealthEndpoints();
 
 app.UseRequestContextLogging();
 
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options =>
+{
+    // The default is the static Log.Logger, which is shared between hosts in the same process
+    // (for example, integration tests). Pin it to this host's own logger instance instead.
+    options.Logger = app.Services.GetRequiredService<Serilog.ILogger>();
+
+    // Request completion logs carry the authenticated actor, so they can be tied to a user.
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        string? userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            diagnosticContext.Set("UserId", userId);
+        }
+    };
+});
 
 app.UseExceptionHandler();
 

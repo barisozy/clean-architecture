@@ -13,12 +13,10 @@
     <None Remove="packaging\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".template.config\template.json" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
-    <None Include="CleanArchitecture.Template.csproj" />
   </ItemGroup>
 </Project>

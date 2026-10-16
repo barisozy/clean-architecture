@@ -24,6 +24,7 @@ public class ProjectReferenceTests
                 "Microsoft.EntityFrameworkCore",
                 "Microsoft.Extensions.Caching.Hybrid",
                 "Microsoft.Extensions.Logging.Abstractions",
+                "Microsoft.Extensions.Options",
                 "Scrutor",
                 "Serilog"
             ]);

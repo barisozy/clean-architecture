@@ -9,17 +9,22 @@ namespace IntegrationTests.Observability;
 public class OtlpLogExportTests
 {
     [Fact]
-    public async Task Logs_Should_BeExportedOverOtlp_WhenEndpointIsConfigured()
+    public async Task Logs_Should_BeExportedOverOtlp_AndCarryTraceAndSpanIds_WhenEndpointIsConfigured()
     {
-        var received = new ConcurrentBag<string>();
+        var received = new ConcurrentBag<byte[]>();
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
 
         await using WebApplication receiver = builder.Build();
-        receiver.MapPost("/v1/{signal}", (string signal) =>
+        receiver.MapPost("/v1/{signal}", async (string signal, HttpRequest request) =>
         {
-            received.Add(signal);
+            if (signal == "logs")
+            {
+                using var body = new MemoryStream();
+                await request.Body.CopyToAsync(body);
+                received.Add(body.ToArray());
+            }
 
             return Results.Ok();
         });
@@ -40,12 +45,24 @@ public class OtlpLogExportTests
             (await client.GetAsync("health/live")).EnsureSuccessStatusCode();
         }
 
-        // The sink batches; disposing the host flushes it. Poll to absorb scheduling jitter.
-        for (int i = 0; i < 50 && !received.Contains("logs"); i++)
+        // The sink batches; disposing the host flushes it. Poll until the batch that carries
+        // the request logs arrives, absorbing scheduling jitter under parallel test load.
+        var records = new List<OtlpLogRecord>();
+
+        for (int attempt = 0; attempt < 300; attempt++)
         {
+            records = received.SelectMany(OtlpLogPayload.Parse).ToList();
+
+            if (records.Any(record => record.HasTraceAndSpanIds))
+            {
+                break;
+            }
+
             await Task.Delay(100);
         }
 
-        received.ShouldContain("logs");
+        // At least one record (the request completion log) is correlated with its trace:
+        // the OTLP record carries the ids of the active activity.
+        records.ShouldContain(record => record.HasTraceAndSpanIds);
     }
 }

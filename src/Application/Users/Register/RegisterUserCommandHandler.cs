@@ -12,7 +12,10 @@ internal sealed class RegisterUserCommandHandler(IApplicationDbContext context, 
 {
     public async Task<Result<Guid>> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
     {
-        if (await context.Users.AnyAsync(u => u.Email == command.Email, cancellationToken))
+        // Emails are stored normalized so lookups are case-insensitive.
+        string email = EmailNormalizer.Normalize(command.Email);
+
+        if (await context.Users.AnyAsync(u => u.Email == email, cancellationToken))
         {
             return Result.Failure<Guid>(UserErrors.EmailNotUnique);
         }
@@ -20,7 +23,7 @@ internal sealed class RegisterUserCommandHandler(IApplicationDbContext context, 
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Email = command.Email,
+            Email = email,
             FirstName = command.FirstName,
             LastName = command.LastName,
             PasswordHash = passwordHasher.Hash(command.Password)
@@ -35,7 +38,20 @@ internal sealed class RegisterUserCommandHandler(IApplicationDbContext context, 
             context.UserPermissions.Add(UserPermission.Create(user.Id, permission));
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Two registrations can pass the pre-check concurrently; the unique index decides.
+            if (await context.Users.AnyAsync(u => u.Email == email, cancellationToken))
+            {
+                return Result.Failure<Guid>(UserErrors.EmailNotUnique);
+            }
+
+            throw;
+        }
 
         return user.Id;
     }

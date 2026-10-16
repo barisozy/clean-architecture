@@ -9,7 +9,7 @@ namespace Application.UnitTests.Abstractions;
 /// A lightweight in-memory <see cref="DbContext"/> that implements <see cref="IApplicationDbContext"/>
 /// so Application handlers can be unit tested without referencing the Infrastructure layer.
 /// </summary>
-public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
+public class TestDbContext(DbContextOptions<TestDbContext> options)
     : DbContext(options), IApplicationDbContext
 {
     public DbSet<User> Users { get; set; }

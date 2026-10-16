@@ -24,12 +24,12 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 
 ### Error handling
 - Expected failures return `Result`/`Result<T>` — no exceptions for control flow, no try/catch around business rules.
-- Errors come from static `{Entity}Errors` factories with `"{Feature}.{Reason}"` codes and the semantically correct type (`NotFound`/`Conflict`/`Problem`/`Failure`).
+- Errors come from static `{Entity}Errors` factories with `"{Feature}.{Reason}"` codes and the semantically correct type (`NotFound`/`Conflict`/`Unauthorized`/`Forbidden`/`Problem`/`Failure`).
 - Endpoints translate failures only via `result.Match(Results.Ok|NoContent, CustomResults.Problem)`.
 
 ### Validation & security
 - Every command has a FluentValidation `{Command}Validator`; handlers don't re-check input shape (but do enforce business rules).
-- Handlers acting on user-owned data enforce ownership: filter by `IUserContext.UserId` or return `UserErrors.Unauthorized()`.
+- Handlers acting on user-owned data enforce ownership: filter by `IUserContext.UserId` or return `UserErrors.Forbidden()`.
 - New endpoints call `.RequireAuthorization()` (or `.HasPermission(...)`) and `.WithTags(Tags.X)`.
 - No `DateTime.UtcNow`/`DateTime.Now` in Application — use `IDateTimeProvider`.
 

@@ -10,7 +10,7 @@ public sealed class LoginTests(IntegrationTestWebAppFactory factory) : BaseInteg
     private const string Password = "Str0ng!Passw0rd#2026";
 
     [Fact]
-    public async Task Login_Should_ReturnSameStatus_ForUnknownEmailAndWrongPassword()
+    public async Task Login_Should_ReturnUnauthorized_ForUnknownEmailAndWrongPassword()
     {
         string email = $"{Guid.NewGuid():N}@example.com";
 
@@ -28,6 +28,6 @@ public sealed class LoginTests(IntegrationTestWebAppFactory factory) : BaseInteg
             new { email = $"{Guid.NewGuid():N}@example.com", password = Password });
 
         unknownEmail.StatusCode.ShouldBe(wrongPassword.StatusCode);
-        unknownEmail.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        unknownEmail.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

@@ -1,5 +1,6 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
+using Application.Users.Refresh;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
@@ -28,7 +29,7 @@ public static class DependencyInjection
             .AddHealthChecks(configuration)
             .AddAuthenticationInternal()
             .AddAuthorizationInternal()
-            .AddRefreshTokenCleanup();
+            .AddRefreshTokens();
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
@@ -103,12 +104,20 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddRefreshTokenCleanup(this IServiceCollection services)
+    private static IServiceCollection AddRefreshTokens(this IServiceCollection services)
     {
         services
             .AddOptions<RefreshTokenCleanupOptions>()
             .BindConfiguration(RefreshTokenCleanupOptions.SectionName)
             .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services
+            .AddOptions<RefreshTokenReuseOptions>()
+            .BindConfiguration(RefreshTokenReuseOptions.SectionName)
+            .Validate(
+                options => options.ReuseGraceSeconds >= 0,
+                "RefreshTokenReuse:ReuseGraceSeconds must be zero or greater.")
             .ValidateOnStart();
 
         services.AddHostedService<RefreshTokenCleanupService>();

@@ -16,6 +16,9 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         .WithPassword("postgres")
         .Build();
 
+    /// <summary>Additional configuration overrides applied on top of the defaults.</summary>
+    public IReadOnlyDictionary<string, string> ExtraSettings { get; init; } = new Dictionary<string, string>();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("ConnectionStrings:Database", _dbContainer.GetConnectionString());
@@ -29,6 +32,11 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // Relax rate limiting so the test suite is not throttled.
         builder.UseSetting("RateLimiting:Global:PermitLimit", "100000");
         builder.UseSetting("RateLimiting:Authentication:PermitLimit", "100000");
+
+        foreach ((string key, string value) in ExtraSettings)
+        {
+            builder.UseSetting(key, value);
+        }
     }
 
     public async Task InitializeAsync()
