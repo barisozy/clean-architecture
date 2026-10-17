@@ -102,26 +102,19 @@ Most Clean Architecture starters stop at the layer diagram. This template carrie
 Dependencies point **inward**. Nothing references `Infrastructure` except the composition root (`Web.Api`), and the core (`Domain`, `SharedKernel`) has no framework or package dependencies at all.
 
 ```mermaid
-flowchart TB
-    Client(["Client<br/>REST + JWT bearer token"])
-
-    subgraph Outer["Outer layers — I/O, frameworks, adapters"]
-        WebApi["<b>Web.Api</b><br/>Minimal API endpoints · ProblemDetails<br/>rate limiting · health checks · composition root"]
-        Infra["<b>Infrastructure</b><br/>EF Core + PostgreSQL · JWT auth<br/>permission authorization · HybridCache · Serilog"]
+flowchart LR
+    subgraph Outer["Outer layers — I/O and frameworks"]
+        WebApi["<b>Web.Api</b><br/>endpoints · middleware"]
+        Infra["<b>Infrastructure</b><br/>EF Core · auth · cache"]
     end
 
-    subgraph Inner["Inner layers — policy, use cases, domain"]
-        App["<b>Application</b><br/>CQRS command/query handlers<br/>FluentValidation · logging &amp; validation decorators"]
-        Domain["<b>Domain</b><br/>entities · domain events · error catalogs<br/><i>no framework or package references</i>"]
-        SharedKernel["<b>SharedKernel</b><br/>Result · Error · Entity · IDomainEvent<br/><i>no references at all</i>"]
+    subgraph Inner["Inner layers — policy and domain"]
+        App["<b>Application</b><br/>use cases"]
+        Domain["<b>Domain</b><br/>entities · events"]
+        SharedKernel["<b>SharedKernel</b><br/>Result · primitives"]
     end
 
-    Client --> WebApi
-    WebApi --> Infra
-    Infra --> App
-    App --> Domain
-    Domain --> SharedKernel
-    App --> SharedKernel
+    WebApi --> Infra --> App --> Domain --> SharedKernel
 ```
 
 `ArchitectureTests` fail the build if an arrow ever points the wrong way, so the diagram is not just documentation — it is enforced.
@@ -167,7 +160,7 @@ Adding a use case touches each layer in its designated place. `CreateTodo` is a 
 | Layer | Files | Role |
 | --- | --- | --- |
 | **Domain** | `src/Domain/Todos/TodoItem.cs` | The entity and its `TodoItemCreatedDomainEvent`. |
-| **Application** | `src/Application/Todos/Create/CreateTodoCommand.cs`<br/>`CreateTodoCommandValidator.cs`<br/>`CreateTodoCommandHandler.cs` | The use case: command, FluentValidation validator and handler returning `Result<Guid>`. |
+| **Application** | `src/Application/Todos/Create/CreateTodoCommand.cs`, `CreateTodoCommandValidator.cs`, `CreateTodoCommandHandler.cs` | The use case: command, FluentValidation validator and handler returning `Result<Guid>`. |
 | **Infrastructure** | `src/Infrastructure/Todos/TodoItemConfiguration.cs` | The EF Core mapping, snake_case by convention. |
 | **Web.Api** | `src/Web.Api/Endpoints/Todos/Create.cs` | The Minimal API endpoint that receives the request, calls the handler and maps the `Result`. |
 

@@ -1,0 +1,17 @@
+sequenceDiagram
+    autonumber
+    participant Client
+    participant Api as Web.Api<br/>(endpoint)
+    participant App as Application<br/>(handler + decorators)
+    participant Domain
+    participant Db as Infrastructure<br/>(EF Core)
+
+    Client->>Api: HTTP request + bearer token
+    Note over Api: forwarded headers → correlation id →<br/>rate limit → authentication → authorization
+    Api->>App: command / query
+    Note over App: logging + validation decorators
+    App->>Domain: load or mutate entity, raise domain events
+    App->>Db: SaveChangesAsync()
+    Db-->>App: persist + dispatch domain events
+    App-->>Api: Result (success or failure)
+    Api-->>Client: 200 OK or RFC 7807 ProblemDetails
