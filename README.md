@@ -1,8 +1,11 @@
-![Clean Architecture Template](https://raw.githubusercontent.com/barisozy/clean-architecture/main/.template.config/icon.png)
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/barisozy/clean-architecture/main/.template.config/icon.png" width="120" alt="Clean Architecture Template" />
 
 # Clean Architecture Template
 
-**A production-minded .NET 10 starter for building HTTP APIs with Clean Architecture.** The layers are already drawn, the dependency rule is enforced by tests, and the boring parts — persistence, authentication, authorization, caching, observability, rate limiting and error handling — are implemented rather than merely referenced.
+**A production-minded .NET 10 starter for building HTTP APIs with Clean Architecture.**<br />
+The layers are already drawn, the dependency rule is enforced by tests, and the boring parts — persistence, authentication, authorization, caching, observability, rate limiting and error handling — are implemented rather than merely referenced.
 
 [![Build](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/barisozy/clean-architecture/actions/workflows/build.yml)
 [![Template](https://github.com/barisozy/clean-architecture/actions/workflows/template.yml/badge.svg?branch=main)](https://github.com/barisozy/clean-architecture/actions/workflows/template.yml)
@@ -10,6 +13,8 @@
 [![NuGet downloads](https://img.shields.io/nuget/dt/Barisozy.CleanArchitecture.Template)](https://www.nuget.org/packages/Barisozy.CleanArchitecture.Template)
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/barisozy/clean-architecture/blob/main/LICENSE)
+
+</div>
 
 ---
 
@@ -96,7 +101,21 @@ Most Clean Architecture starters stop at the layer diagram. This template carrie
 
 Dependencies point **inward**. Nothing references `Infrastructure` except the composition root (`Web.Api`), and the core (`Domain`, `SharedKernel`) has no framework or package dependencies at all.
 
-![Layers and the dependencies between them](https://raw.githubusercontent.com/barisozy/clean-architecture/main/docs/images/dependency-rule.png)
+```mermaid
+flowchart LR
+    subgraph Outer["Outer layers — I/O and frameworks"]
+        WebApi["<b>Web.Api</b><br/>endpoints · middleware"]
+        Infra["<b>Infrastructure</b><br/>EF Core · auth · cache"]
+    end
+
+    subgraph Inner["Inner layers — policy and domain"]
+        App["<b>Application</b><br/>use cases"]
+        Domain["<b>Domain</b><br/>entities · events"]
+        SharedKernel["<b>SharedKernel</b><br/>Result · primitives"]
+    end
+
+    WebApi --> Infra --> App --> Domain --> SharedKernel
+```
 
 `ArchitectureTests` fail the build if an arrow ever points the wrong way, so the diagram is not just documentation — it is enforced.
 
@@ -114,7 +133,25 @@ Dependencies point **inward**. Nothing references `Infrastructure` except the co
 
 A request crosses the layers inward and the answer comes back out, each boundary doing exactly one job. No exceptions are used for control flow.
 
-![The journey of a request across the layers](https://raw.githubusercontent.com/barisozy/clean-architecture/main/docs/images/request-journey.png)
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant Api as Web.Api<br/>(endpoint)
+    participant App as Application<br/>(handler + decorators)
+    participant Domain
+    participant Db as Infrastructure<br/>(EF Core)
+
+    Client->>Api: HTTP request + bearer token
+    Note over Api: forwarded headers → correlation id →<br/>rate limit → authentication → authorization
+    Api->>App: command / query
+    Note over App: logging + validation decorators
+    App->>Domain: load or mutate entity, raise domain events
+    App->>Db: SaveChangesAsync()
+    Db-->>App: persist + dispatch domain events
+    App-->>Api: Result (success or failure)
+    Api-->>Client: 200 OK or RFC 7807 ProblemDetails
+```
 
 ### One feature across the layers
 
@@ -318,7 +355,13 @@ Every refresh rotates the token: the old token is marked as used and a new one i
 
 Logout (`POST users/logout` with the refresh token) requires an authenticated request and revokes the caller's token family; access tokens stay valid until they expire. Tokens that are unknown or belong to another user are ignored with `204 No Content`, so the endpoint is idempotent and reveals nothing.
 
-![Refresh token rotation and reuse handling](https://raw.githubusercontent.com/barisozy/clean-architecture/main/docs/images/refresh-token-rotation.png)
+```mermaid
+flowchart LR
+    T1["Refresh token T1"] -->|POST /users/refresh-token| T2["T1 marked used,<br/>T2 issued in the same family"]
+    T2 -->|T1 presented again| G{"Within<br/>grace window?"}
+    G -->|Yes| R["Reject the replay,<br/>keep the family"]
+    G -->|No| V["Revoke the entire family"]
+```
 
 ### Refresh token cleanup
 
