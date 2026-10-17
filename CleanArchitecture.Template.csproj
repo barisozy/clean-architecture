@@ -26,7 +26,7 @@
 	     LICENSE): NuGet treats a path without an extension as a directory and appends the
 	     source path a second time. -->
 	<Content Include="**/*"
-			  Exclude=".containers/**;.git/**;.vs/**;README.md;CleanArchitecture.Template.csproj;artifacts/**;packaging/**;**/bin/**;**/obj/**;**/TestResults/**;.github/workflows/publish-nuget.yml;.github/workflows/template.yml;**/*.user;**/*.suo;**/*.userosscache">
+			  Exclude=".containers/**;.git/**;.vs/**;docs/**;README.md;CleanArchitecture.Template.csproj;artifacts/**;packaging/**;**/bin/**;**/obj/**;**/TestResults/**;.github/workflows/publish-nuget.yml;.github/workflows/template.yml;**/*.user;**/*.suo;**/*.userosscache">
 	  <Pack>true</Pack>
 	  <PackagePath>content/</PackagePath>
 	</Content>
