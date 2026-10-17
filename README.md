@@ -466,7 +466,7 @@ This template is a starting point rather than a finished product:
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/barisozy/clean-architecture/blob/main/CONTRIBUTING.md) for development setup and pull request guidance.
+Development setup, conventions and pull request guidance live in [CONTRIBUTING.md](https://github.com/barisozy/clean-architecture/blob/main/CONTRIBUTING.md). Participation is governed by the [Code of Conduct](https://github.com/barisozy/clean-architecture/blob/main/CODE_OF_CONDUCT.md), and security vulnerabilities should be reported privately as described in [SECURITY.md](https://github.com/barisozy/clean-architecture/blob/main/SECURITY.md).
 
 ## License
 
