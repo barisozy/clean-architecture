@@ -1,0 +1,13 @@
+flowchart LR
+    subgraph Outer["Outer layers — I/O and frameworks"]
+        WebApi["<b>Web.Api</b><br/>endpoints · middleware"]
+        Infra["<b>Infrastructure</b><br/>EF Core · auth · cache"]
+    end
+
+    subgraph Inner["Inner layers — policy and domain"]
+        App["<b>Application</b><br/>use cases"]
+        Domain["<b>Domain</b><br/>entities · events"]
+        SharedKernel["<b>SharedKernel</b><br/>Result · primitives"]
+    end
+
+    WebApi --> Infra --> App --> Domain --> SharedKernel

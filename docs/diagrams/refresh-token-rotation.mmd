@@ -1,0 +1,5 @@
+flowchart LR
+    T1["Refresh token T1"] -->|POST /users/refresh-token| T2["T1 marked used,<br/>T2 issued in the same family"]
+    T2 -->|T1 presented again| G{"Within<br/>grace window?"}
+    G -->|Yes| R["Reject the replay,<br/>keep the family"]
+    G -->|No| V["Revoke the entire family"]
